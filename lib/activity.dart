@@ -67,7 +67,9 @@ Widget activityList() {
                               });
                               FirebaseFirestore.instance.collection('GolferActivities').doc(doc.id).update({
                                 'golfers': glist
-                              });                                
+                              });
+                              myActivities.add(doc.id);
+                              storeMyActivities();
                             } 
                           });
                       }
