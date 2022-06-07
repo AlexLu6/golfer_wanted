@@ -290,7 +290,7 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                   const SizedBox(height: 10.0),
                   Text(Language.of(context).teeOff + activity.data()!['teeOff'].toDate().toString().substring(0, 16) + '\t' + Language.of(context).fee + activity.data()!['fee'].toString(), style: TextStyle(fontSize: 20)),
                   const SizedBox(height: 10.0),
-                  Text(activity.data()!['courseName'] + "\t" + Language.of(context).max + activity.data()!['max'].toString(), style: TextStyle(fontSize: 20)),
+                  Text(activity.data()!['course'] + "\t" + Language.of(context).max + activity.data()!['max'].toString(), style: TextStyle(fontSize: 20)),
                   const SizedBox(height: 10.0),
                   Visibility(
                     visible: !scoreReady,
@@ -499,7 +499,7 @@ class NewActivityPage extends MaterialPageRoute<bool> {
                           activity.add({
                             'uid': uid,
                             'locale': theLocale,
-                            "courseName": _courseName,
+                            "course": _courseName,
                             "teeOff": Timestamp.fromDate(_selectedDate),
                             "max": _max,
                             "fee": _fee,
