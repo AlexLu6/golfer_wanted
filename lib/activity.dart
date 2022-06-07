@@ -28,7 +28,7 @@ Widget activityList() {
                 } else {
                   return Card(
                     child: ListTile(
-                      title: (doc.data()! as Map)['course'],
+                      title: Text((doc.data()! as Map)['course']),
                       subtitle: Text(Language.of(context).teeOff + ((doc.data()! as Map)['teeOff']).toDate().toString().substring(0, 16) + '\n' + 
                                     Language.of(context).max + (doc.data()! as Map)['max'].toString() + '\t' + 
                                     Language.of(context).now + ((doc.data()! as Map)['golfers'] as List).length.toString() + "\t" + 
