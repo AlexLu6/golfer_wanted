@@ -380,7 +380,7 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                   child: FloatingActionButton(
                       onPressed: () {
                         // modify activity info
-                        Navigator.push(context, _EditActivityPage(activity, course['name'])).then((value) {
+                        Navigator.push(context, _EditActivityPage(activity, activity.data()!['course'])).then((value) {
                           if (value ?? false) Navigator.of(context).pop(0);
                         });
                       },
