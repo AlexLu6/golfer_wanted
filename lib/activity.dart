@@ -547,7 +547,7 @@ class _EditActivityPage extends MaterialPageRoute<bool> {
               body: StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
                 return Column(crossAxisAlignment: CrossAxisAlignment.center, children: <Widget>[
                   const SizedBox(height: 12),
-                  Text(Language.of(context).courseName + _courseName, style: TextStyle(fontSize: 20)),
+                  Text(_courseName, style: TextStyle(fontSize: 20)),
                   const SizedBox(height: 12),
                   Flexible(
                       child: Row(children: <Widget>[
