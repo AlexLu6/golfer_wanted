@@ -21,6 +21,8 @@ Widget activityList() {
                 children: snapshot.data!.docs.map((doc) {
                 if ((doc.data()! as Map)["teeOff"] == null) {
                   return LinearProgressIndicator();
+                } else if (myActivities.indexOf(doc.id) >= 0) {
+                  return SizedBox.shrink();
                 } else if ((doc.data()! as Map)["teeOff"].compareTo(deadline) < 0) {
                   //delete the activity
                   FirebaseFirestore.instance.collection('GolferActivities').doc(doc.id).delete();
