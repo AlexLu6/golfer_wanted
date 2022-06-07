@@ -495,17 +495,17 @@ class NewActivityPage extends MaterialPageRoute<bool> {
                   ElevatedButton(
                       child: Text(Language.of(context).create, style: TextStyle(fontSize: 24)),
                       onPressed: () async {
-                        var name = await golferName(uid);
                         if (_courseName != '') {
                           activity.add({
                             'uid': uid,
+                            'locale': theLocale,
                             "courseName": _courseName,
                             "teeOff": Timestamp.fromDate(_selectedDate),
                             "max": _max,
                             "fee": _fee,
                             "remarks": _remarks,
                             'subgroups': [],
-                            "golfers": _includeMe ? [{"uid": uid, "name": name, "scores": []}] : []
+                            "golfers": _includeMe ? [{"uid": uid, "name": userName, "scores": []}] : []
                           }).then((value) {
                             if (_includeMe) {
                               myActivities.add(value.id);
