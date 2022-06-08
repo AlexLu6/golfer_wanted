@@ -367,13 +367,13 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                       saveIcon: Icons.save,
                       saveIconColor: Colors.blue,
                       onRowSaved: (row) {
-                        List<int> scores = [row['EG'], row['EG'], ];
+                        List<int> scores = [row['EG'], row['BD'], row['PAR'], row['BG'], row['DB'], row['MM']];
                         myScores.insert(0, {
                           'date': DateTime.now().toString().substring(0, 16),
                           'course': activity.data()!['course'],
                           'scores': scores,
                           'total': row['total'],
-                          'handicap': scores[3] - scores[1] + (scores[4]  - scores[0])*2 + scores[5]*3
+                          'handicap': scores[3] - scores[1] + (scores[4] - scores[0])*2 + scores[5]*3
                         });
                         storeMyScores();
                         updateScore();
