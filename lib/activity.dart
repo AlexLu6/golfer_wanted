@@ -367,17 +367,27 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                       saveIcon: Icons.save,
                       saveIconColor: Colors.blue,
                       onRowSaved: (row) {
-                        List<int> scores = [row['EG'], row['BD'], row['PAR'], row['BG'], row['DB'], row['MM']];
-                        myScores.insert(0, {
-                          'date': DateTime.now().toString().substring(0, 16),
-                          'course': activity.data()!['course'],
-                          'scores': scores,
-                          'total': row['total'],
-                          'handicap': scores[3] - scores[1] + (scores[4] - scores[0])*2 + scores[5]*3
-                        });
-                        storeMyScores();
-                        updateScore();
-                        Navigator.of(context).pop(0);
+                        List<int> scores = [
+                          row['EG'] == '' ? 0 : int.parse(row['EG']), 
+                          row['BD'] == '' ? 0 : int.parse(row['BD']), 
+                          row['PAR'] == '' ? 0 : int.parse(row['PAR']), 
+                          row['BG'] == '' ? 0 : int.parse(row['BG']), 
+                          row['DB'] == '' ? 0 : int.parse(row['DB']), 
+                          row['MM'] == '' ? 0 : int.parse(row['MM'])
+                        ];
+                        int _handicap = scores[3] - scores[1] + (scores[4] - scores[0])*2 + scores[5]*3;
+                        if (row['total'] != '') {
+                          myScores.insert(0, {
+                            'date': DateTime.now().toString().substring(0, 16),
+                            'course': activity.data()!['course'],
+                            'scores': scores,
+                            'total': row['total'],
+                            'handicap': _handicap > 0 ? _handicap : 0
+                          });
+                          storeMyScores();
+                          updateScore();
+                          Navigator.of(context).pop(0);
+                        }
                       },
                     ))
                   ),
