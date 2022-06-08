@@ -386,7 +386,6 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                           });
                           storeMyScores();
                           updateScore();
-                          Navigator.of(context).pop(0);
                         }
                       },
                     ))
