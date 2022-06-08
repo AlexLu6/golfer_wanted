@@ -12,7 +12,7 @@ String netPhoto = 'https://wallpaper.dog/large/5514437.jpg';
 Widget activityList() {
   Timestamp deadline = Timestamp.fromDate(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
   return StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance.collection('GolferActivities').orderBy('teeOff').snapshots(), //.where(FieldPath.documentId, whereIn: myActivities)
+          stream: FirebaseFirestore.instance.collection('GolferActivities').orderBy('teeOff').snapshots(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return const CircularProgressIndicator();
@@ -28,6 +28,16 @@ Widget activityList() {
                   FirebaseFirestore.instance.collection('GolferActivities').doc(doc.id).delete();
                   return const SizedBox.shrink();
                 } else {
+                  FirebaseFirestore.instance.collection('ApplyAct').where('uid', isEqualTo: golferID).where('aid', isEqualTo: doc.id)
+                    .get().then((value) {
+                      value.docs.forEach((result) {
+                        if (result['response'] == 'OK') {
+                          myActivities.add(doc.id);
+                          storeMyActivities();
+                          FirebaseFirestore.instance.collection('ApplyAct').doc(result.id).delete();
+                        }
+                      });
+                    });
                   return Card(
                     child: ListTile(
                       title: Text((doc.data()! as Map)['course']),
@@ -37,41 +47,9 @@ Widget activityList() {
                                     Language.of(context).fee + (doc.data()! as Map)['fee'].toString()),
                       leading: Image.network(coursePhoto),
                       trailing: const Icon(Icons.keyboard_arrow_right),
-                      onTap: () async {                          
-                          Navigator.push(context, ShowActivityPage(doc, golferID, await golferName((doc.data()! as Map)['uid'] as int)!, golferID == (doc.data()! as Map)['uid'] as int))
-                          .then((value) async {
-                            var glist = doc.get('golfers');
-                            if (value == -1) {
-                              myActivities.remove(doc.id);
-                              storeMyActivities();
-                              glist.removeWhere((item) => item['uid'] == golferID);
-                              var subGroups = doc.get('subgroups');
-                              for (int i = 0; i < subGroups.length; i++) {
-                                for (int j = 0; j < (subGroups[i] as Map).length; j++) {
-                                  if ((subGroups[i] as Map)[j.toString()] == golferID) {
-                                    for (; j<(subGroups[i] as Map).length - 1; j++)
-                                      (subGroups[i] as Map)[j.toString()] = (subGroups[i] as Map)[(j+1).toString()];
-                                    (subGroups[i] as Map).remove(j.toString());
-                                  }                                   
-                                }
-                              }
-                              FirebaseFirestore.instance.collection('GolferActivities').doc(doc.id).update({
-                                'golfers': glist,
-                                'subgroups': subGroups
-                              });
-                            } else if (value == 1) {
-                              glist.add({
-                                'uid': golferID,
-                                'name': userName + ((userSex == gender.Female) ? Language.of(context).femaleNote : ''),
-                                'scores': []
-                              });
-                              FirebaseFirestore.instance.collection('GolferActivities').doc(doc.id).update({
-                                'golfers': glist
-                              });
-                              myActivities.add(doc.id);
-                              storeMyActivities();
-                            } 
-                          });
+                      onTap: () async {
+                        int uid = (doc.data()! as Map)['uid'] as int;
+                        Navigator.push(context, ShowActivityPage(doc, golferID, await golferName(uid)!, golferID == uid));
                       }
                     )
                   );
@@ -90,7 +68,7 @@ Widget myActivityBody() {
           stream: FirebaseFirestore.instance.collection('GolferActivities').orderBy('teeOff').snapshots(), //.where(FieldPath.documentId, whereIn: myActivities)
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
-              return CircularProgressIndicator();
+              return const CircularProgressIndicator();
             } else {
               return ListView(
                 children: snapshot.data!.docs.map((doc) {
@@ -103,7 +81,7 @@ Widget myActivityBody() {
                   FirebaseFirestore.instance.collection('GolferActivities').doc(doc.id).delete();
                   myActivities.remove(doc.id);
                   storeMyActivities();
-                  return SizedBox.shrink();
+                  return const SizedBox.shrink();
                 } else {
                   allActivities.add(doc.id);
                   return Card(
@@ -137,17 +115,6 @@ Widget myActivityBody() {
                                   'subgroups': subGroups
                                 });
                                 print(myActivities);
-                              } else if (value == 1) {
-                                glist.add({
-                                  'uid': golferID,
-                                  'name': userName + ((userSex == gender.Female) ? Language.of(context).femaleNote : ''),
-                                  'scores': []
-                                });
-                                myActivities.add(doc.id);
-                                storeMyActivities();
-                                FirebaseFirestore.instance.collection('GolferActivities').doc(doc.id).update({
-                                  'golfers': glist
-                                });                                
                               } else if (myActivities.length != allActivities.length) {
                                   myActivities = allActivities;
                                   storeMyActivities();
@@ -569,7 +536,7 @@ class _EditActivityPage extends MaterialPageRoute<bool> {
             FirebaseFirestore.instance.collection('Golfers').where('uid', whereIn: blist).get().then((value) {
               value.docs.forEach((result) {
                 var items = result.data();
-                if (((actDoc.data()! as Map)['golfers'] as List).indexOf(items['uid'] as int) < 0)
+                if (((actDoc.data()! as Map)['golfers'] as List).contains(items['uid'] as int))
                   golfers.add(NameID(items['name'] + '(' + items['phone'] + ')', items['uid'] as int));
               });
             });
@@ -716,7 +683,7 @@ class SubGroupPage extends MaterialPageRoute<bool> {
               if (subIntGroups[i][j] == uId) alreadyIn = i;
             }
           }
-          if (subIntGroups.length == 0 || ( subIntGroups[subIntGroups.length - 1].length > 0 && 
+          if (subIntGroups.isEmpty || (subIntGroups[subIntGroups.length - 1].isNotEmpty && 
               subIntGroups.length < max && alreadyIn < 0))
               subIntGroups.add([]);
 
