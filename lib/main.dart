@@ -364,19 +364,6 @@ class _MyHomePageState extends State<MyHomePage> {
   ListView myScoreBody() {
     int cnt = myScores.length > 10 ? 10 : myScores.length;
     userHandicap = 0;
-
-    List<int> scoreRow(List pars, List scores){      
-      int eg = 0, bd =0, par = 0, bg = 0, db = 0, mm = 0;
-      for (var i=0; i < pars.length; i++) {
-        if (scores[i] == pars[i]) par++;
-        else if (scores[i] == pars[i] + 1) bg++;
-        else if (scores[i] == pars[i] + 2) db++;
-        else if (scores[i] == pars[i] - 1) bd++;
-        else if (scores[i] == pars[i] - 2) eg++;
-        else mm++;
-      }
-      return [eg, bd, par, bg, db, mm];
-    }
     List parRows = [
       Emoji.byName('eagle')!.char, 
       Emoji.byName('dove')!.char, 
@@ -395,9 +382,9 @@ class _MyHomePageState extends State<MyHomePage> {
           prefs!.setDouble('handicap', userHandicap);
         }
         return ListTile(
-          leading: CircleAvatar(child: Text(myScores[i]['total'].toString(), style: TextStyle(fontWeight: FontWeight.bold))), 
-          title: Text(myScores[i]['date'] + ' ' + myScores[i]['course'], style: TextStyle(fontWeight: FontWeight.bold)), 
-          subtitle: Text(parRows.toString() + ': ' + scoreRow(myScores[i]['pars'], myScores[i]['scores']).toString())
+          leading: CircleAvatar(child: Text(myScores[i]['total'].toString(), style: const TextStyle(fontWeight: FontWeight.bold))), 
+          title: Text(myScores[i]['date'] + ' ' + myScores[i]['course'], style: const TextStyle(fontWeight: FontWeight.bold)), 
+          subtitle: Text(parRows.toString() + '\n' + myScores[i]['scores'].toString())
         );
       },
     );

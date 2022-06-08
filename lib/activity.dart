@@ -217,28 +217,19 @@ class ShowActivityPage extends MaterialPageRoute<int> {
             var scoreRows = [];
             int idx = 1;    
             for (var e in activity.data()!['golfers']) {
-              if ((e['scores'] as List).length > 0) {
-                int eg = 0, bd =0, par = 0, bg = 0, db = 0;
-                List pars = e['pars'] as List;              
+              if ((e['scores'] as List).isNotEmpty) {          
                 List scores = e['scores'] as List;
-                for (var ii=0; ii < pars.length; ii++) {
-                  if (scores[ii] == pars[ii]) par++;
-                  else if (scores[ii] == pars[ii] + 1) bg++;
-                  else if (scores[ii] == pars[ii] + 2) db++;
-                  else if (scores[ii] == pars[ii] - 1) bd++;
-                  else if (scores[ii] == pars[ii] - 2) eg++;
-                }
                 String net = e['net'].toString();
                 scoreRows.add({
                   'rank': idx,
                   'total': e['total'],
                   'name': e['name'],
                   'net': net.substring(0, min(net.length, 5)),
-                  'EG' : eg,
-                  'BD' : bd,
-                  'PAR' : par,
-                  'BG' : bg,
-                  'DB' : db
+                  'EG' : scores[0],
+                  'BD' : scores[1],
+                  'PAR' : scores[2],
+                  'BG' : scores[3],
+                  'DB' : scores[4]
                 });
                 idx++;
               }
@@ -250,11 +241,9 @@ class ShowActivityPage extends MaterialPageRoute<int> {
           }
 
           bool teeOffPass = activity.data()!['teeOff'].compareTo(Timestamp.now()) < 0;
-          Map course = {};
           void updateScore() {
             FirebaseFirestore.instance.collection('GolferActivities').doc(activity.id).get().then((value) {
               var glist = value.get('golfers');
-              glist[uIdx]['pars'] = myScores[0]['pars'];
               glist[uIdx]['scores'] = myScores[0]['scores'];
               glist[uIdx]['total'] = myScores[0]['total'];
               glist[uIdx]['net'] = myScores[0]['total'] - userHandicap;
@@ -277,7 +266,7 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                 storeMyActivities();
               }
             }
-            if ((e['scores'] as List).length > 0) {
+            if ((e['scores'] as List).isNotEmpty) {
               scoreReady = true;
               if (e['uid'] as int == uId) 
                 scoreDone = true;              
@@ -301,17 +290,17 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                     child: Flexible(
                       child: Editable(
                       borderColor: Colors.black,
-                      tdStyle: TextStyle(fontSize: 14),
+                      tdStyle: const TextStyle(fontSize: 14),
                       trHeight: 16,
                       tdAlignment: TextAlign.center,
                       thAlignment: TextAlign.center,
                       columnRatio: 0.2,
                       columns: [
                         {"title": Language.of(context).tableGroup, 'index': 1, 'key': 'row', 'editable': false, 'widthFactor': 0.15},
-                        {"title": "A", 'index': 2, 'key': 'c1', 'editable': false},
-                        {"title": "B", 'index': 3, 'key': 'c2', 'editable': false},
-                        {"title": "C", 'index': 4, 'key': 'c3', 'editable': false},
-                        {"title": "D", 'index': 5, 'key': 'c4', 'editable': false}
+                        const {"title": "A", 'index': 2, 'key': 'c1', 'editable': false},
+                        const {"title": "B", 'index': 3, 'key': 'c2', 'editable': false},
+                        const {"title": "C", 'index': 4, 'key': 'c3', 'editable': false},
+                        const {"title": "D", 'index': 5, 'key': 'c4', 'editable': false}
                       ],
                       rows: buildRows(),
                     ))
@@ -335,7 +324,7 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                     child : Flexible(
                       child: Editable(
                       borderColor: Colors.black,
-                      tdStyle: TextStyle(fontSize: 14),
+                      tdStyle: const TextStyle(fontSize: 14),
                       trHeight: 16,
                       tdAlignment: TextAlign.center,
                       thAlignment: TextAlign.center,
@@ -345,22 +334,52 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                         {'title': Language.of(context).total, 'index': 2, 'key': 'total', 'editable': false, 'widthFactor': 0.13},
                         {'title': Language.of(context).name, 'index': 3, 'key': 'name', 'editable': false, 'widthFactor': 0.2},
                         {'title': Language.of(context).net, 'index': 4, 'key': 'net', 'editable': false, 'widthFactor': 0.15},
-                        {'title': '${Emoji.byName('dove')!.char}', 'index': 5, 'key': 'BD', 'editable': false},
-                        {'title': '${Emoji.byName('person golfing')!.char}', 'index': 6, 'key': 'PAR', 'editable': false},
-                        {'title': '${Emoji.byName('index pointing up')!.char}', 'index': 7, 'key': 'BG', 'editable': false},
-                        {'title': '${Emoji.byName('victory hand')!.char}', 'index': 8, 'key': 'DB', 'editable': false},
-                        {'title': '${Emoji.byName('eagle')!.char}', 'index': 9, 'key': 'EG', 'editable': false},      
+                        {'title': Emoji.byName('dove')!.char, 'index': 5, 'key': 'BD', 'editable': false},
+                        {'title': Emoji.byName('person golfing')!.char, 'index': 6, 'key': 'PAR', 'editable': false},
+                        {'title': Emoji.byName('index pointing up')!.char, 'index': 7, 'key': 'BG', 'editable': false},
+                        {'title': Emoji.byName('victory hand')!.char, 'index': 8, 'key': 'DB', 'editable': false},
+                        {'title': Emoji.byName('eagle')!.char, 'index': 9, 'key': 'EG', 'editable': false},      
                       ],
                       rows: buildScoreRows(),
                     ))
                   ),
                   Visibility(
                     visible: teeOffPass && alreadyIn && !isBackup && !scoreDone,
-                    child : ElevatedButton(
-                      child: Text(Language.of(context).enterScore),
-                      onPressed: () {
-                      }
-                    )
+                    child : Flexible(
+                      child: Editable(
+                      borderColor: Colors.black,
+                      tdStyle: const TextStyle(fontSize: 14),
+                      trHeight: 16,
+                      tdAlignment: TextAlign.center,
+                      thAlignment: TextAlign.center,
+                      columnRatio: 0.12,
+                      columns: [
+                        {'title': Language.of(context).total, 'index': 1, 'key': 'total','widthFactor': 0.15},
+                        {'title': Emoji.byName('eagle')!.char, 'index': 2, 'key': 'EG'},
+                        {'title': Emoji.byName('dove')!.char, 'index': 3, 'key': 'BD'},
+                        {'title': Emoji.byName('person golfing')!.char, 'index': 4, 'key': 'PAR'},
+                        {'title': Emoji.byName('index pointing up')!.char, 'index': 5, 'key': 'BG'},
+                        {'title': Emoji.byName('victory hand')!.char, 'index': 6, 'key': 'DB'},
+                        {'title': Emoji.byName('face exhaling')!.char, 'index': 7, 'key': 'MM'},
+                      ],
+                      rows: const [{'total': '', 'BD': '', 'PAR': '', 'BG': '', 'DB': '', 'EG': '', 'MM': ''}],
+                      showSaveIcon: true,
+                      saveIcon: Icons.save,
+                      saveIconColor: Colors.blue,
+                      onRowSaved: (row) {
+                        List<int> scores = [row['EG'], row['EG'], ];
+                        myScores.insert(0, {
+                          'date': DateTime.now().toString().substring(0, 16),
+                          'course': activity.data()!['course'],
+                          'scores': scores,
+                          'total': row['total'],
+                          'handicap': scores[3] - scores[1] + (scores[4]  - scores[0])*2 + scores[5]*3
+                        });
+                        storeMyScores();
+                        updateScore();
+                        Navigator.of(context).pop(0);
+                      },
+                    ))
                   ),
                   Visibility(
                     visible: !teeOffPass && alreadyIn,
