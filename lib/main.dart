@@ -241,6 +241,7 @@ class _MyHomePageState extends State<MyHomePage> {
       showCursor: true,
       onChanged: (String value) => setState(() => userName = value),
       keyboardType: TextInputType.name,
+      style: const TextStyle(fontSize: 24),
       decoration: InputDecoration(labelText: Language.of(context).name, hintText: Language.of(context).realName, icon: Icon(Icons.person), border: UnderlineInputBorder()),
     );
 
@@ -249,6 +250,7 @@ class _MyHomePageState extends State<MyHomePage> {
 //      key: Key(_phone),
       onChanged: (String value) => setState(() => userPhone = value),
       keyboardType: TextInputType.phone,
+      style: const TextStyle(fontSize: 24),
       decoration: InputDecoration(labelText: Language.of(context).mobile, icon: Icon(Icons.phone), border: UnderlineInputBorder()),
     );
     final golferSex = Row(children: <Widget>[
@@ -338,7 +340,7 @@ class _MyHomePageState extends State<MyHomePage> {
       children: <Widget>[
         SizedBox(height: 8.0),
         logo,
-        SizedBox(height: 16.0),
+        SizedBox(height: 12.0),
         golferName,
         SizedBox(height: 8.0),
         golferPhone,
