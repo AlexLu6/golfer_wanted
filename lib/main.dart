@@ -336,17 +336,17 @@ class _MyHomePageState extends State<MyHomePage> {
     );
     return ListView(
       shrinkWrap: true,
-      padding: EdgeInsets.only(left: 24.0, right: 24.0),
+      padding: const EdgeInsets.only(left: 24.0, right: 24.0),
       children: <Widget>[
-        SizedBox(height: 8.0),
+        const SizedBox(height: 8.0),
         logo,
-        SizedBox(height: 12.0),
+        const SizedBox(height: 12.0),
         golferName,
-        SizedBox(height: 8.0),
+        const SizedBox(height: 8.0),
         golferPhone,
-        SizedBox(height: 8.0),
+        const SizedBox(height: 8.0),
         golferSex,
-        SizedBox(height: 8.0),
+        const SizedBox(height: 8.0),
         Visibility(
           visible:isRegistered,
           child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: <Widget>[
@@ -354,9 +354,9 @@ class _MyHomePageState extends State<MyHomePage> {
             Text('Expired: ' + expiredDate.substring(0, min(10, expiredDate.length)))
           ])
         ),
-        SizedBox(height: 10.0),
+        const SizedBox(height: 10.0),
         loginButton,
-        SizedBox(height: 10.0)
+        const SizedBox(height: 10.0)
       ],
     );
   }

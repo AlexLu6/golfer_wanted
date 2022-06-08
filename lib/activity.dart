@@ -286,7 +286,7 @@ class ShowActivityPage extends MaterialPageRoute<int> {
           }
 
           return Scaffold(
-              appBar: AppBar(title: Text(title), elevation: 1.0),
+              appBar: AppBar(title: Text(Language.of(context).host + title), elevation: 1.0),
               body: StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
                 return Container(
                   decoration: BoxDecoration(image: DecorationImage(image: NetworkImage(netPhoto), fit: BoxFit.cover)),
@@ -493,11 +493,11 @@ class NewActivityPage extends MaterialPageRoute<bool> {
                     const SizedBox(width: 5),
                     Checkbox(value: _includeMe, onChanged: (bool? value) => setState(() => _includeMe = value!)),
                     const SizedBox(width: 5),
-                    const Text('Include myself')
+                    Text(Language.of(context).includeMyself)
                   ])),
                   const SizedBox(height: 12.0),
                   ElevatedButton(
-                      child: Text(Language.of(context).create, style: TextStyle(fontSize: 24)),
+                      child: Text(Language.of(context).create, style: const TextStyle(fontSize: 20)),
                       onPressed: () async {
                         if (_courseName != '') {
                           activity.add({

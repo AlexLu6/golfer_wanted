@@ -72,4 +72,5 @@ class LanguageEn extends Language {
   String get applicationSent => 'Your application has been sent!';
   String get deleteGroup => 'Delete Group';
   String get includeMyself => 'Include myself';
+  String get host => 'Host: ';
 }
