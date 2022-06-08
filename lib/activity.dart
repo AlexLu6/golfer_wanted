@@ -20,9 +20,9 @@ Widget activityList() {
               return ListView(
                 children: snapshot.data!.docs.map((doc) {
                 if ((doc.data()! as Map)["teeOff"] == null) {
-                  return LinearProgressIndicator();
-                } else if (myActivities.indexOf(doc.id) >= 0) {
-                  return SizedBox.shrink();
+                  return const LinearProgressIndicator();
+                } else if (myActivities.contains(doc.id) || (doc.data()! as Map)["locale"] != theLocale) {
+                  return const SizedBox.shrink();
                 } else if ((doc.data()! as Map)["teeOff"].compareTo(deadline) < 0) {
                   //delete the activity
                   FirebaseFirestore.instance.collection('GolferActivities').doc(doc.id).delete();
