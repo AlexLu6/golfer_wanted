@@ -11,6 +11,7 @@ import 'locale/language.dart';
 String netPhoto = 'https://wallpaper.dog/large/5514437.jpg';
 Widget activityList() {
   Timestamp deadline = Timestamp.fromDate(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
+  print(deadline);
   return StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance.collection('GolferActivities').orderBy('teeOff').snapshots(),
           builder: (context, snapshot) {
