@@ -24,7 +24,7 @@ Widget activityList() {
                   return const LinearProgressIndicator();
                 } else if (myActivities.contains(doc.id) || (doc.data()! as Map)["locale"] != theLocale) {
                   return const SizedBox.shrink();
-                } else if ((doc.data()! as Map)["teeOff"].compareTo(deadline) < 0 && (doc.data()! as Map)["golfers"].length == 0) {
+                } else if ((doc.data()! as Map)["teeOff"].compareTo(deadline) < 0) {
                   //delete the activity
                   FirebaseFirestore.instance.collection('GolferActivities').doc(doc.id).delete();
                   return const SizedBox.shrink();
