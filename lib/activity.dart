@@ -11,7 +11,6 @@ import 'locale/language.dart';
 String netPhoto = 'https://wallpaper.dog/large/5514437.jpg';
 Widget activityList() {
   Timestamp deadline = Timestamp.fromDate(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
-  print(deadline);
   return StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance.collection('GolferActivities').orderBy('teeOff').snapshots(),
           builder: (context, snapshot) {
@@ -50,7 +49,10 @@ Widget activityList() {
                       trailing: const Icon(Icons.keyboard_arrow_right),
                       onTap: () async {
                         int uid = (doc.data()! as Map)['uid'] as int;
-                        Navigator.push(context, ShowActivityPage(doc, golferID, await golferName(uid)!, golferID == uid));
+                        Navigator.push(context, ShowActivityPage(doc, golferID, await golferName(uid)!, golferID == uid))
+                        .then((value) async {
+                          // send application to owner
+                        });
                       }
                     )
                   );
