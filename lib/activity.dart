@@ -22,7 +22,10 @@ Widget activityList() {
                 children: snapshot.data!.docs.map((doc) {
                 if ((doc.data()! as Map)["teeOff"] == null) {
                   return const LinearProgressIndicator();
-                } else if (myActivities.contains(doc.id) || (doc.data()! as Map)["locale"] != theLocale) {
+                } else if (myActivities.contains(doc.id)) {
+                  allActivities.add(doc.id);
+                  return const SizedBox.shrink();
+                } else if ((doc.data()! as Map)["locale"] != theLocale) {                  
                   return const SizedBox.shrink();
                 } else if ((doc.data()! as Map)["teeOff"].compareTo(deadline) < 0) {
                   //delete the activity
@@ -39,10 +42,10 @@ Widget activityList() {
                         }
                       });
                     });
-                  if (((doc.data()! as Map)['golfers'] as List).contains({'uid': golferID})) {
-                    myActivities.add(doc.id);
-                    storeMyActivities();
-                  }
+                  ((doc.data()! as Map)['golfers'] as List<Map>).forEach((element) {
+                    if (element['uid'] == golferID)
+                      allActivities.add(doc.id);
+                  });
                   return Card(
                     child: ListTile(
                       title: Text((doc.data()! as Map)['course']),
