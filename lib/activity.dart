@@ -42,7 +42,7 @@ Widget activityList() {
                         }
                       });
                     });
-                  ((doc.data()! as Map)['golfers'] as List<Map>).forEach((element) {
+                  ((doc.data()! as Map)['golfers'] as List).forEach((element) {
                     if (element['uid'] == golferID)
                       allActivities.add(doc.id);
                   });
