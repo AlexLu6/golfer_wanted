@@ -11,6 +11,7 @@ import 'locale/language.dart';
 String netPhoto = 'https://wallpaper.dog/large/5514437.jpg';
 Widget activityList() {
   Timestamp deadline = Timestamp.fromDate(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
+  var allActivities = [];
   return StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance.collection('GolferActivities').orderBy('teeOff').snapshots(),
           builder: (context, snapshot) {
@@ -32,12 +33,16 @@ Widget activityList() {
                     .get().then((value) {
                       value.docs.forEach((result) {
                         if (result['response'] == 'OK') {
-                          myActivities.add(doc.id);
-                          storeMyActivities();
+//                          myActivities.add(doc.id);
+//                          storeMyActivities();
                           FirebaseFirestore.instance.collection('ApplyAct').doc(result.id).delete();
                         }
                       });
                     });
+                  if (((doc.data()! as Map)['golfers'] as List).contains({'uid': golferID})) {
+                    myActivities.add(doc.id);
+                    storeMyActivities();
+                  }
                   return Card(
                     child: ListTile(
                       title: Text((doc.data()! as Map)['course']),
@@ -52,6 +57,24 @@ Widget activityList() {
                         Navigator.push(context, ShowActivityPage(doc, golferID, await golferName(uid)!, golferID == uid))
                         .then((value) async {
                           // send application to owner
+                          if (value == 1) {
+                            FirebaseFirestore.instance.collection('ApplyAct').add({
+                              'uid': golferID,
+                              'aid': doc.id,
+                              'response': 'waiting'
+                            }).whenComplete(() => showDialog<bool>(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: Text(Language.of(context).hint),
+                                  content: Text(Language.of(context).applicationSent),
+                                  actions: <Widget>[
+                                    TextButton(child: Text("OK"), onPressed: () => Navigator.of(context).pop(true)),
+                                  ],
+                                );
+                              }
+                            ));
+                          }
                         });
                       }
                     )
@@ -117,7 +140,6 @@ Widget myActivityBody() {
                                   'golfers': glist,
                                   'subgroups': subGroups
                                 });
-                                print(myActivities);
                               } else if (myActivities.length != allActivities.length) {
                                   myActivities = allActivities;
                                   storeMyActivities();
