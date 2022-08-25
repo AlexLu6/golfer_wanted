@@ -517,7 +517,7 @@ class NewActivityPage extends MaterialPageRoute<bool> {
                     Checkbox(value: _includeMe, onChanged: (bool? value) => setState(() => _includeMe = value!)),
                     const SizedBox(width: 5),
                     Text(Language.of(context).includeMyself),
-                    const SizedBox(width: 5),
+                    const SizedBox(width: 8),
                     Checkbox(value: _approveNeeded, onChanged: (bool? value) => setState(() => _approveNeeded = value!)),
                     const SizedBox(width: 5),
                     Text(Language.of(context).approveNeeded)                    
@@ -558,6 +558,7 @@ class _EditActivityPage extends MaterialPageRoute<bool> {
           String _remarks = (actDoc.data()! as Map)['remarks'];
           int _fee = (actDoc.data()! as Map)['fee'], _max = (actDoc.data()! as Map)['max'];
           DateTime _selectedDate = (actDoc.data()! as Map)['teeOff'].toDate();
+          bool  _approveNeeded = (actDoc.data()! as Map)['approve'] == 1 ? true : false;
           List<NameID> golfers = [];
           var _selectedGolfer;
           var blist = [];
@@ -566,10 +567,10 @@ class _EditActivityPage extends MaterialPageRoute<bool> {
             blist.add(element['uid']);
           });
           if (blist.length > 0)
-            FirebaseFirestore.instance.collection('Golfers').where('uid', whereIn: blist).get().then((value) {
+            FirebaseFirestore.instance.collection('Golfers').get().then((value) {
               value.docs.forEach((result) {
                 var items = result.data();
-                if (((actDoc.data()! as Map)['golfers'] as List).contains(items['uid'] as int))
+                if (blist.contains(items['uid'] as int))
                   golfers.add(NameID(items['name'] + '(' + items['phone'] + ')', items['uid'] as int));
               });
             });
@@ -646,6 +647,13 @@ class _EditActivityPage extends MaterialPageRoute<bool> {
                     maxLines: 3,
                     decoration: InputDecoration(labelText: Language.of(context).actRemarks, icon: Icon(Icons.edit_note), border: OutlineInputBorder()),
                   ),
+                  Flexible(
+                    child: Row(children: <Widget>[
+                    const SizedBox(width: 5),
+                    Checkbox(value: _approveNeeded, onChanged: (bool? value) => setState(() => _approveNeeded = value!)),
+                    const SizedBox(width: 5),
+                    Text(Language.of(context).approveNeeded)                    
+                  ])),
                   const SizedBox(height: 12),
                   Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: <Widget>[
                     ElevatedButton(
@@ -656,6 +664,7 @@ class _EditActivityPage extends MaterialPageRoute<bool> {
                           "max": _max,
                           "fee": _fee,
                           "remarks": _remarks,
+                          "approve": _approveNeeded ? 1 : 0,
                         }).then((value) {
                           Navigator.of(context).pop(true);
                         });
