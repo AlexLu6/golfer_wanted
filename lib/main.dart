@@ -66,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
   @override
   void initState() {
-    initPlatformState();
+    // initPlatformState();
     golferID = prefs!.getInt('golferID') ?? 0;
     userHandicap = prefs!.getDouble('handicap') ?? initHandicap;
     expiredDate = prefs!.getString('expired')?? '';
@@ -84,7 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
           expiredDate = items['expired'].toDate().toString();
           prefs!.setString('expired', expiredDate);
         }
-        isExpired = items['expired'].compareTo(Timestamp.now()) < 0;
+        // isExpired = items['expired'].compareTo(Timestamp.now()) < 0;
         setState(() => isRegistered = true);
         _currentPageIndex = isExpired ? 5 : myActivities.isNotEmpty ? 2 : 1;
       });
@@ -107,9 +107,9 @@ class _MyHomePageState extends State<MyHomePage> {
       Language.of(context).purchase
     ];
 
-    if (expiredDate.length > 0)
+/*     if (expiredDate.length > 0)
       isExpired = Timestamp.fromDate(DateTime.parse(expiredDate.substring(0, 16))).compareTo(Timestamp.now()) < 0;
-
+ */
     return Scaffold(
       appBar: AppBar(
         title: Text(appTitle[_currentPageIndex]),
@@ -295,7 +295,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     print(userName + '(' + userPhone + ') already registered! ($golferID)');
                     storeMyActivities();
                     storeMyScores();
-                    isExpired = items['expired'].compareTo(Timestamp.now()) < 0;
+                    // isExpired = items['expired'].compareTo(Timestamp.now()) < 0;
                   });
                 }).whenComplete(() {
                     if (uID == 0) {
@@ -351,7 +351,7 @@ class _MyHomePageState extends State<MyHomePage> {
           visible:isRegistered,
           child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: <Widget>[
             Text(Language.of(context).handicap + ": " + userHandicap.toString().substring(0, min(userHandicap.toString().length, 5)), style: TextStyle(fontWeight: FontWeight.bold)),
-            Text('Expired: ' + expiredDate.substring(0, min(10, expiredDate.length)))
+            // Text('Expired: ' + expiredDate.substring(0, min(10, expiredDate.length)))
           ])
         ),
         const SizedBox(height: 10.0),

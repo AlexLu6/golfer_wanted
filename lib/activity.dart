@@ -59,24 +59,37 @@ Widget activityList() {
                         int uid = (doc.data()! as Map)['uid'] as int;
                         Navigator.push(context, ShowActivityPage(doc, golferID, await golferName(uid)!, golferID == uid))
                         .then((value) async {
-                          // send application to owner
-                          if (value == 1) {
-                            FirebaseFirestore.instance.collection('ApplyAct').add({
-                              'uid': golferID,
-                              'aid': doc.id,
-                              'response': 'waiting'
-                            }).whenComplete(() => showDialog<bool>(
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  title: Text(Language.of(context).hint),
-                                  content: Text(Language.of(context).applicationSent),
-                                  actions: <Widget>[
-                                    TextButton(child: Text("OK"), onPressed: () => Navigator.of(context).pop(true)),
-                                  ],
-                                );
-                              }
-                            ));
+                          if ((doc.data()! as Map)['approve'] == 1) {
+                            // send application to owner
+                            if (value == 1) {
+                              FirebaseFirestore.instance.collection('ApplyAct').add({
+                                'uid': golferID,
+                                'aid': doc.id,
+                                'response': 'waiting'
+                              }).whenComplete(() => showDialog<bool>(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: Text(Language.of(context).hint),
+                                    content: Text(Language.of(context).applicationSent),
+                                    actions: <Widget>[
+                                      TextButton(child: Text("OK"), onPressed: () => Navigator.of(context).pop(true)),
+                                    ],
+                                  );
+                                }
+                              ));
+                            }
+                          } else {
+                            // add my id to golfer list
+                            var glist = doc.get('golfers');
+                            glist.add({
+                                "uid": golferID, 
+                                "name": userName + ((userSex == gender.Female) ? Language.of(context).femaleNote : ''), 
+                                "scores": []
+                            });
+                            FirebaseFirestore.instance.collection('GolferActivities').doc(doc.id).update({'golfers': glist});
+                            myActivities.add(doc.id);
+                            storeMyActivities();
                           }
                         });
                       }
