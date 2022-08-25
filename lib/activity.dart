@@ -424,7 +424,7 @@ class NewActivityPage extends MaterialPageRoute<bool> {
           String _courseName = '', _remarks = '';
           var _selectedCourse;
           DateTime _selectedDate = DateTime.now();
-          bool _includeMe = true;
+          bool _includeMe = true, _approveNeeded = false;
           int _fee = 2500, _max = 4;
           var activity = FirebaseFirestore.instance.collection('GolferActivities');
 
@@ -516,7 +516,11 @@ class NewActivityPage extends MaterialPageRoute<bool> {
                     const SizedBox(width: 5),
                     Checkbox(value: _includeMe, onChanged: (bool? value) => setState(() => _includeMe = value!)),
                     const SizedBox(width: 5),
-                    Text(Language.of(context).includeMyself)
+                    Text(Language.of(context).includeMyself),
+                    const SizedBox(width: 5),
+                    Checkbox(value: _approveNeeded, onChanged: (bool? value) => setState(() => _approveNeeded = value!)),
+                    const SizedBox(width: 5),
+                    Text(Language.of(context).approveNeeded)                    
                   ])),
                   const SizedBox(height: 12.0),
                   ElevatedButton(
@@ -532,6 +536,7 @@ class NewActivityPage extends MaterialPageRoute<bool> {
                             "fee": _fee,
                             "remarks": _remarks,
                             'subgroups': [],
+                            'approve': _approveNeeded ? 1 : 0,
                             "golfers": _includeMe ? [{"uid": uid, "name": userName + ((userSex == gender.Female) ? Language.of(context).femaleNote : ''), "scores": []}] : []
                           }).then((value) {
                             if (_includeMe) {

@@ -76,5 +76,6 @@ abstract class Language {
   String get applicationSent;
   String get deleteGroup;
   String get includeMyself;
+  String get approveNeeded;
   String get host;
 }
