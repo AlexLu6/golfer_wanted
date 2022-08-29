@@ -44,21 +44,23 @@ Future<void> initPlatformState() async {
       FlutterInappPurchase.purchaseUpdated.listen((productItem) {
         int idx = productItem!.productId == 'golfer_consume_1_month' ? 0 :
                   productItem.productId == 'golfer_consume_1_season' ? 1 :
-                  productItem.productId == 'golfer_consume_1_season' ? 2 : 3;
+                  productItem.productId == 'golfer_consume_1_year' ? 2 : 3;
         if (idx == 3)
           idx = productItem.productId == 'golfer_1_month_fee' ? 0 :
                 productItem.productId == 'golfer_1_season_fee' ? 1 : 2;
  
           DateTime expireDate = DateTime.now().add(Duration(days: idx == 0 ? 30 : idx == 1 ? 91 : 365));
           Timestamp expire = Timestamp.fromDate(expireDate);
-          FirebaseFirestore.instance.collection('Golfers').doc(golferDoc).update({
-              "expired": expire
-          });
-          isExpired = false;
-          expiredDate = expireDate.toString();
-          prefs!.setString('expired', expiredDate);                
-          FlutterInappPurchase.instance.consumeAll();
-          validateReceipt(productItem);
+          if (isExpired) {
+            FirebaseFirestore.instance.collection('Golfers').doc(golferDoc).update({
+                "expired": expire
+            });
+            isExpired = false;
+            expiredDate = expireDate.toString();
+            prefs!.setString('expired', expiredDate);                
+            FlutterInappPurchase.instance.consumeAll();
+            validateReceipt(productItem);
+          }
   });
 
   _purchaseErrorSubscription =
