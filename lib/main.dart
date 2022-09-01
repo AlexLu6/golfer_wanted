@@ -122,15 +122,7 @@ class _MyHomePageState extends State<MyHomePage> {
               : _currentPageIndex == 4  ? usageBody() : purchaseBody()
       ),
       drawer: isRegistered ? golfDrawer() : null,
-/*      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentPageIndex,
-        items: widget._pages.map((Page page) =>
-            BottomNavigationBarItem(
-              icon: Icon(page.iconData),
-              label: page.title,
-            )).toList(),
-        onTap: _openPage,
-      ),);*/
+
       floatingActionButton: (_currentPageIndex == 1)
           ? FloatingActionButton(
               onPressed: () => doAddActivity(context),
