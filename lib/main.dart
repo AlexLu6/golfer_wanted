@@ -285,7 +285,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     prefs!.setString('expired', expiredDate);
                     golferID = uID;
                     print(userName + '(' + userPhone + ') already registered! ($golferID)');
+                    myActivities.clear();
                     storeMyActivities();
+                    myScores.clear();
                     storeMyScores();
                     // isExpired = items['expired'].compareTo(Timestamp.now()) < 0;
                   });

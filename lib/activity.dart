@@ -50,8 +50,8 @@ Widget activityList() {
                     child: ListTile(
                       title: Text((doc.data()! as Map)['course']),
                       subtitle: Text(Language.of(context).teeOff + ((doc.data()! as Map)['teeOff']).toDate().toString().substring(0, 16) + '\n' + 
-                                    Language.of(context).max + (doc.data()! as Map)['max'].toString() + '\t' + 
-                                    Language.of(context).now + ((doc.data()! as Map)['golfers'] as List).length.toString() + "\t" + 
+                                    Language.of(context).max + (doc.data()! as Map)['max'].toString() + ' ' + 
+                                    Language.of(context).now + ((doc.data()! as Map)['golfers'] as List).length.toString() + " " + 
                                     Language.of(context).fee + (doc.data()! as Map)['fee'].toString()),
                       leading: Image.network(coursePhoto),
                       trailing: const Icon(Icons.keyboard_arrow_right),
@@ -59,9 +59,9 @@ Widget activityList() {
                         int uid = (doc.data()! as Map)['uid'] as int;
                         Navigator.push(context, ShowActivityPage(doc, golferID, await golferName(uid)!, golferID == uid))
                         .then((value) async {
-                          if ((doc.data()! as Map)['approve'] == 1) {
+                          if (value == 1) {
+                            if ((doc.data()! as Map)['approve'] == 1) {
                             // send application to owner
-                            if (value == 1) {
                               FirebaseFirestore.instance.collection('ApplyAct').add({
                                 'uid': golferID,
                                 'aid': doc.id,
@@ -78,17 +78,20 @@ Widget activityList() {
                                   );
                                 }
                               ));
+                            } else {
+                              // add my id to golfer list
+                              var glist = doc.get('golfers');
+                              glist.add({
+                                  "uid": golferID, 
+                                  "name": userName + ((userSex == gender.Female) ? Language.of(context).femaleNote : ''), 
+                                  "scores": []
+                              });
+                              FirebaseFirestore.instance.collection('GolferActivities').doc(doc.id).update({'golfers': glist});
+                              myActivities.add(doc.id);
+                              storeMyActivities();
                             }
-                          } else {
-                            // add my id to golfer list
-                            var glist = doc.get('golfers');
-                            glist.add({
-                                "uid": golferID, 
-                                "name": userName + ((userSex == gender.Female) ? Language.of(context).femaleNote : ''), 
-                                "scores": []
-                            });
-                            FirebaseFirestore.instance.collection('GolferActivities').doc(doc.id).update({'golfers': glist});
-                            myActivities.add(doc.id);
+                          } else if (value == -1) {
+                            myActivities.remove(doc.id);
                             storeMyActivities();
                           }
                         });
@@ -130,8 +133,8 @@ Widget myActivityBody() {
                       child: ListTile(
                           title: Text((doc.data()! as Map)['course']),
                           subtitle: Text(Language.of(context).teeOff + ((doc.data()! as Map)['teeOff']).toDate().toString().substring(0, 16) + '\n' + 
-                                        Language.of(context).max + (doc.data()! as Map)['max'].toString() + '\t' + 
-                                        Language.of(context).now + ((doc.data()! as Map)['golfers'] as List).length.toString() + "\t" + 
+                                        Language.of(context).max + (doc.data()! as Map)['max'].toString() + ' ' + 
+                                        Language.of(context).now + ((doc.data()! as Map)['golfers'] as List).length.toString() + " " + 
                                         Language.of(context).fee + (doc.data()! as Map)['fee'].toString()),
                           leading: Image.network(coursePhoto),
                           trailing: Icon(Icons.keyboard_arrow_right),
@@ -289,9 +292,9 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                   decoration: BoxDecoration(image: DecorationImage(image: NetworkImage(netPhoto), fit: BoxFit.cover)),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: <Widget>[
                   const SizedBox(height: 10.0),
-                  Text(Language.of(context).teeOff + activity.data()!['teeOff'].toDate().toString().substring(0, 16) + '\t' + Language.of(context).fee + activity.data()!['fee'].toString(), style: TextStyle(fontSize: 20)),
+                  Text(Language.of(context).teeOff + activity.data()!['teeOff'].toDate().toString().substring(0, 16) + ' ' + Language.of(context).fee + activity.data()!['fee'].toString(), style: TextStyle(fontSize: 20)),
                   const SizedBox(height: 10.0),
-                  Text(activity.data()!['course'] + "\t" + Language.of(context).max + activity.data()!['max'].toString(), style: TextStyle(fontSize: 20)),
+                  Text(activity.data()!['course'] + " " + Language.of(context).max + activity.data()!['max'].toString(), style: TextStyle(fontSize: 20)),
                   const SizedBox(height: 10.0),
                   Visibility(
                     visible: !scoreReady,
@@ -313,7 +316,19 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                       rows: buildRows(),
                     ))
                   ),
-                  Text(Language.of(context).actRemarks + activity.data()!['remarks']),
+//                  Text(Language.of(context).actRemarks + activity.data()!['remarks']),
+                  TextFormField(
+                    showCursor: true,
+                    initialValue: activity.data()!['remarks'],
+                    onTap: () {
+                      
+                    },
+//                    onChanged: (String value) => setState(() => _remarks = value),
+                    maxLines: 5,
+                    readOnly: true,
+//                    scrollPadding: EdgeInsets.only(bottom: 40),
+                    decoration: InputDecoration(labelText: Language.of(context).actRemarks, icon: Icon(Icons.edit_note), border: OutlineInputBorder()),
+                  ),
                   const SizedBox(height: 4.0),
                   Visibility(
                     visible: ((activity.data()!['golfers'] as List).length > 4) && alreadyIn && !isBackup && !scoreReady,
