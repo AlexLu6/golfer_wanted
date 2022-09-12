@@ -57,9 +57,9 @@ Future<void> initPlatformState() async {
             });
             isExpired = false;
             expiredDate = expireDate.toString();
-            prefs!.setString('expired', expiredDate);                
-            FlutterInappPurchase.instance.consumeAll();
-            validateReceipt(productItem);
+            prefs!.setString('expired', expiredDate);  
+            validateReceipt(productItem);              
+            FlutterInappPurchase.instance.finishTransaction(productItem, isConsumable: true);
           }
   });
 
