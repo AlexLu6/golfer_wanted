@@ -284,7 +284,31 @@ class ShowActivityPage extends MaterialPageRoute<int> {
             }
             eidx++;
           }
-
+  final _textFieldController = TextEditingController();
+ 
+  Future<String?> chatInputDialog(BuildContext context) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Leave a Message'),
+            content: TextField(
+              controller: _textFieldController,
+              decoration: const InputDecoration(hintText: "Your Message"),
+            ),
+            actions: <Widget>[
+              ElevatedButton(
+                child: const Text("Cancel"),
+                onPressed: () => Navigator.pop(context),
+              ),
+              ElevatedButton(
+                child: const Text('OK'),
+                onPressed: () => Navigator.pop(context, _textFieldController.text),
+              ),
+            ],
+          );
+        });
+  }
           return Scaffold(
               appBar: AppBar(title: Text(Language.of(context).host + title), elevation: 1.0),
               body: StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
@@ -320,8 +344,14 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                   TextFormField(
                     showCursor: true,
                     initialValue: activity.data()!['remarks'],
-                    onTap: () {
-                      
+                    style: TextStyle(color: Colors.black),
+                    onTap: () async {
+                      var msg = await chatInputDialog(context);
+                      if (msg != null) {
+                        String remarks = activity.data()['remarks'] +'\n' + userName + ': ' + msg;
+                        FirebaseFirestore.instance.collection('GolferActivities').doc(activity.id).update({'remarks': remarks});
+                        // refresh this TextFormField
+                      }
                     },
 //                    onChanged: (String value) => setState(() => _remarks = value),
                     maxLines: 5,
