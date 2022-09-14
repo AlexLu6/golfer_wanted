@@ -182,9 +182,9 @@ class ShowActivityPage extends MaterialPageRoute<int> {
           bool alreadyIn = false, scoreReady = false, scoreDone = false, isBackup = false;
           String uName = '';
           int uIdx = 0;
-          var rows = [];
-
+        
           List buildRows() {
+            var rows = [];
             var oneRow = {};
             int idx = 0;
 
@@ -285,7 +285,7 @@ class ShowActivityPage extends MaterialPageRoute<int> {
             eidx++;
           }
   final _textFieldController = TextEditingController();
- 
+  String _remarks = activity.data()!['remarks'];
   Future<String?> chatInputDialog(BuildContext context) async {
     return showDialog(
         context: context,
@@ -342,22 +342,22 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                   ),
 //                  Text(Language.of(context).actRemarks + activity.data()!['remarks']),
                   TextFormField(
+                    key: Key(_remarks),
                     showCursor: true,
-                    initialValue: activity.data()!['remarks'],
+                    initialValue: _remarks,
                     style: TextStyle(color: Colors.black),
                     onTap: () async {
                       var msg = await chatInputDialog(context);
                       if (msg != null) {
-                        String remarks = activity.data()['remarks'] +'\n' + userName + ': ' + msg;
-                        FirebaseFirestore.instance.collection('GolferActivities').doc(activity.id).update({'remarks': remarks});
+                        _remarks = activity.data()['remarks'] +'\n' + userName + ': ' + msg;
+                        FirebaseFirestore.instance.collection('GolferActivities').doc(activity.id).update({'remarks': _remarks})
+                          .then((value) => setState(() {}));
                         // refresh this TextFormField
                       }
                     },
-//                    onChanged: (String value) => setState(() => _remarks = value),
                     maxLines: 5,
                     readOnly: true,
-//                    scrollPadding: EdgeInsets.only(bottom: 40),
-                    decoration: InputDecoration(labelText: Language.of(context).actRemarks, icon: Icon(Icons.edit_note), border: OutlineInputBorder()),
+                    decoration: InputDecoration(labelText: Language.of(context).actRemarks, border: OutlineInputBorder()),
                   ),
                   const SizedBox(height: 4.0),
                   Visibility(
