@@ -63,7 +63,7 @@ class LanguageEn extends Language {
   String get applyFirst => 'You should apply the group first';
   String get applyWaiting => 'You have applied already, wait for it.';
   String get applyRejected => 'Your application is rejected';
-  String get applyGroup => ' is applying this group!';
+  String get applyGroup => ' is applying this activity!';
   String get hint => 'Hint';
   String get reply => 'Reply';
   String get scoreNote => 'Note: Press Enter after all inputs!';

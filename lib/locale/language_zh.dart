@@ -63,7 +63,7 @@ class LanguageZh extends Language {
   String get applyFirst => '請先申請加入高球群組';
   String get applyWaiting => '已申請, 請等待回復.';
   String get applyRejected => '您的申請被拒絕';
-  String get applyGroup => ' 申請加入此高球群組';
+  String get applyGroup => ' 申請加入此高球活動';
   String get hint => '提示';
   String get reply => '回復';
   String get scoreNote => '注意：輸入成績後要按Enter!';

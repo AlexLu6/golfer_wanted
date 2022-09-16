@@ -253,15 +253,13 @@ class ShowActivityPage extends MaterialPageRoute<int> {
 
           bool teeOffPass = activity.data()!['teeOff'].compareTo(Timestamp.now()) < 0;
           void updateScore() {
-            FirebaseFirestore.instance.collection('GolferActivities').doc(activity.id).get().then((value) {
-              var glist = value.get('golfers');
-              glist[uIdx]['scores'] = myScores[0]['scores'];
-              glist[uIdx]['total'] = myScores[0]['total'];
-              glist[uIdx]['net'] = myScores[0]['total'] - userHandicap;
-              FirebaseFirestore.instance.collection('GolferActivities').doc(activity.id).update({
-                'golfers': glist
-              }).whenComplete(() => Navigator.of(context).pop(0));
-            });           
+            var glist = activity.data()!['golfers'];
+            glist[uIdx]['scores'] = myScores[0]['scores'];
+            glist[uIdx]['total'] = myScores[0]['total'];
+            glist[uIdx]['net'] = myScores[0]['total']- userHandicap;
+            FirebaseFirestore.instance.collection('GolferActivities').doc(activity.id).update({
+              'golfers': glist
+            }).whenComplete(() => Navigator.of(context).pop(0));  
           }
 
           // prepare parameters
@@ -284,31 +282,73 @@ class ShowActivityPage extends MaterialPageRoute<int> {
             }
             eidx++;
           }
-  final _textFieldController = TextEditingController();
-  String _remarks = activity.data()!['remarks'];
-  Future<String?> chatInputDialog(BuildContext context) async {
-    return showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('Leave a Message'),
-            content: TextField(
-              controller: _textFieldController,
-              decoration: const InputDecoration(hintText: "Your Message"),
-            ),
-            actions: <Widget>[
-              ElevatedButton(
-                child: const Text("Cancel"),
-                onPressed: () => Navigator.pop(context),
-              ),
-              ElevatedButton(
-                child: const Text('OK'),
-                onPressed: () => Navigator.pop(context, _textFieldController.text),
-              ),
-            ],
-          );
-        });
-  }
+          final _textFieldController = TextEditingController();
+          String _remarks = activity.data()!['remarks'];
+          Future<String?> chatInputDialog(BuildContext context) async {
+            return showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text('Leave a Message'),
+                    content: TextField(
+                      controller: _textFieldController,
+                      decoration: const InputDecoration(hintText: "Your Message"),
+                    ),
+                    actions: <Widget>[
+                      ElevatedButton(
+                        child: const Text("Cancel"),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      ElevatedButton(
+                        child: const Text('OK'),
+                        onPressed: () => Navigator.pop(context, _textFieldController.text),
+                      ),
+                    ],
+                  );
+                });
+          }
+        Future<int?> grantApplyDialog(String name) {
+            return showDialog<int>(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: Text(Language.of(context).reply),
+                  content: Text(name + Language.of(context).applyGroup),
+                  actions: <Widget>[
+                    TextButton(child: Text("OK"), onPressed: () => Navigator.of(context).pop(1)),
+                    TextButton(child: Text("Reject"), onPressed: () => Navigator.of(context).pop(-1)),
+                    TextButton(child: Text("Skip"), onPressed: () => Navigator.of(context).pop(0))
+                  ],
+                );
+              }
+            );
+          }
+          bool addMember = false;
+          void doAddMember()  {     
+            FirebaseFirestore.instance.collection('ApplyAct').where('aid', isEqualTo: activity.id).where('response', isEqualTo: 'waiting').get().then((value) {
+              value.docs.forEach((result) async {
+                // grant or refuse the apply of e['uid']
+                var e = result.data();
+                int uid = e['uid'] as int;
+                String uname = await golferName(uid)!;
+                int? ans = await grantApplyDialog(uname);
+                if (ans! > 0) {
+                  FirebaseFirestore.instance.collection('ApplyAct').doc(result.id)
+                    .update({'response': 'OK'});
+                  var glist = activity.get('golfers');
+                  glist.add({
+                      "uid": uid, 
+                      "name": uname, 
+                      "scores": []
+                  });
+                  FirebaseFirestore.instance.collection('GolferActivities').doc(activity.id).update({'golfers': glist});
+                  addMember = true;
+                } else if (ans < 0)
+                  FirebaseFirestore.instance.collection('ApplyAct').doc(result.id)
+                    .update({'response': 'No'});
+              });
+            });
+          }
           return Scaffold(
               appBar: AppBar(title: Text(Language.of(context).host + title), elevation: 1.0),
               body: StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
@@ -339,25 +379,6 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                       ],
                       rows: buildRows(),
                     ))
-                  ),
-//                  Text(Language.of(context).actRemarks + activity.data()!['remarks']),
-                  TextFormField(
-                    key: Key(_remarks),
-                    showCursor: true,
-                    initialValue: _remarks,
-                    style: TextStyle(color: Colors.black),
-                    onTap: () async {
-                      var msg = await chatInputDialog(context);
-                      if (msg != null) {
-                        _remarks = activity.data()['remarks'] +'\n' + userName + ': ' + msg;
-                        FirebaseFirestore.instance.collection('GolferActivities').doc(activity.id).update({'remarks': _remarks})
-                          .then((value) => setState(() {}));
-                        // refresh this TextFormField
-                      }
-                    },
-                    maxLines: 5,
-                    readOnly: true,
-                    decoration: InputDecoration(labelText: Language.of(context).actRemarks, border: OutlineInputBorder()),
                   ),
                   const SizedBox(height: 4.0),
                   Visibility(
@@ -413,7 +434,7 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                         {'title': Emoji.byName('person golfing')!.char, 'index': 4, 'key': 'PAR'},
                         {'title': Emoji.byName('index pointing up')!.char, 'index': 5, 'key': 'BG'},
                         {'title': Emoji.byName('victory hand')!.char, 'index': 6, 'key': 'DB'},
-                        {'title': Emoji.byName('face exhaling')!.char, 'index': 7, 'key': 'MM'},
+                        {'title': Emoji.byName('face exhaling')!.char, 'index': 7, 'key': 'MM','widthFactor': 0.15},
                       ],
                       rows: const [{'total': '', 'BD': '', 'PAR': '', 'BG': '', 'DB': '', 'EG': '', 'MM': ''}],
                       showSaveIcon: true,
@@ -434,14 +455,33 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                             'date': DateTime.now().toString().substring(0, 16),
                             'course': activity.data()!['course'],
                             'scores': scores,
-                            'total': row['total'],
+                            'total': double.parse(row['total']),
                             'handicap': _handicap > 0 ? _handicap : 0
                           });
                           storeMyScores();
                           updateScore();
+                          scoreDone = true;
                         }
                       },
                     ))
+                  ),
+                  TextFormField(
+                    key: Key(_remarks),
+                    showCursor: true,
+                    initialValue: _remarks,
+                    style: TextStyle(color: Colors.black),
+                    onTap: () async {
+                      var msg = await chatInputDialog(context);
+                      if (msg != null) {
+                        _remarks = activity.data()['remarks'] +'\n' + userName + ': ' + msg;
+                        FirebaseFirestore.instance.collection('GolferActivities').doc(activity.id).update({'remarks': _remarks})
+                          .then((value) => setState(() {}));
+                        // refresh this TextFormField
+                      }
+                    },
+                    maxLines: 5,
+                    readOnly: true,
+                    decoration: InputDecoration(labelText: Language.of(context).actRemarks, border: OutlineInputBorder()),
                   ),
                   Visibility(
                     visible: !teeOffPass && alreadyIn,
@@ -464,6 +504,7 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                   visible: editable,
                   child: FloatingActionButton(
                       onPressed: () {
+                        doAddMember();
                         // modify activity info
                         Navigator.push(context, _EditActivityPage(activity, activity.data()!['course'])).then((value) {
                           if (value ?? false) Navigator.of(context).pop(0);
@@ -632,7 +673,7 @@ class _EditActivityPage extends MaterialPageRoute<bool> {
                   golfers.add(NameID(items['name'] + '(' + items['phone'] + ')', items['uid'] as int));
               });
             });
-
+  
           return Scaffold(
               appBar: AppBar(title: Text(Language.of(context).editActivity), elevation: 1.0),
               body: StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
