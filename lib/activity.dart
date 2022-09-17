@@ -508,6 +508,7 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                         // modify activity info
                         Navigator.push(context, _EditActivityPage(activity, activity.data()!['course'])).then((value) {
                           if (value ?? false) Navigator.of(context).pop(0);
+                          else if (addMember) Navigator.of(context).pop(0);
                         });
                       },
                       child: const Icon(Icons.edit),
