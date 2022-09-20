@@ -9,6 +9,7 @@ import 'dataModel.dart';
 import 'locale/language.dart';
 
 String netPhoto = 'https://wallpaper.dog/large/5514437.jpg';
+bool  alreadyApply = false;
 Widget activityList() {
   Timestamp deadline = Timestamp.fromDate(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
   var allActivities = [];
@@ -39,7 +40,7 @@ Widget activityList() {
 //                          myActivities.add(doc.id);
 //                          storeMyActivities();
                           FirebaseFirestore.instance.collection('ApplyAct').doc(result.id).delete();
-                        }
+                        } else alreadyApply = true;
                       });
                     });
                   ((doc.data()! as Map)['golfers'] as List).forEach((element) {
@@ -69,6 +70,7 @@ Widget activityList() {
                               }).whenComplete(() => showDialog<bool>(
                                 context: context,
                                 builder: (context) {
+                                  alreadyApply = true;
                                   return AlertDialog(
                                     title: Text(Language.of(context).hint),
                                     content: Text(Language.of(context).applicationSent),
@@ -252,6 +254,7 @@ class ShowActivityPage extends MaterialPageRoute<int> {
           }
 
           bool teeOffPass = activity.data()!['teeOff'].compareTo(Timestamp.now()) < 0;
+          bool teeOffPass2 = activity.data()!['teeOff'].compareTo(Timestamp(Timestamp.now().seconds + 2*60*60, 0)) < 0;
           void updateScore() {
             var glist = activity.data()!['golfers'];
             glist[uIdx]['scores'] = myScores[0]['scores'];
@@ -418,7 +421,7 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                     ))
                   ),
                   Visibility(
-                    visible: teeOffPass && alreadyIn && !isBackup && !scoreDone,
+                    visible: teeOffPass2 && alreadyIn && !isBackup && !scoreDone,
                     child : Flexible(
                       child: Editable(
                       borderColor: Colors.black,
@@ -465,33 +468,35 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                       },
                     ))
                   ),
-                  TextFormField(
-                    key: Key(_remarks),
-                    showCursor: true,
-                    initialValue: _remarks,
-                    style: TextStyle(color: Colors.black),
-                    onTap: () async {
-                      var msg = await chatInputDialog(context);
-                      if (msg != null) {
-                        _remarks = activity.data()['remarks'] +'\n' + userName + ': ' + msg;
-                        FirebaseFirestore.instance.collection('GolferActivities').doc(activity.id).update({'remarks': _remarks})
-                          .then((value) => setState(() {}));
-                        // refresh this TextFormField
-                      }
-                    },
-                    maxLines: 5,
-                    readOnly: true,
-                    decoration: InputDecoration(labelText: Language.of(context).actRemarks, border: OutlineInputBorder()),
-                  ),
                   Visibility(
-                    visible: !teeOffPass && alreadyIn,
+                    visible: !teeOffPass2, 
+                    child: TextFormField(
+                      key: Key(_remarks),
+                      showCursor: true,
+                      initialValue: _remarks,
+                      style: TextStyle(color: Colors.black),
+                      onTap: () async {
+                        var msg = await chatInputDialog(context);
+                        if (msg != null) {
+                          _remarks = activity.data()['remarks'] +'\n' + userName + ': ' + msg;
+                          FirebaseFirestore.instance.collection('GolferActivities').doc(activity.id).update({'remarks': _remarks})
+                            .then((value) => setState(() {}));
+                          // refresh this TextFormField
+                        }
+                      },
+                      maxLines: 5,
+                      readOnly: true,
+                      decoration: InputDecoration(labelText: Language.of(context).actRemarks, border: OutlineInputBorder()),
+                  )),
+                  Visibility(
+                    visible: !teeOffPass && alreadyIn && !alreadyApply,
                     child: ElevatedButton(
                       child: Text(Language.of(context).cancel),
                       onPressed: () => Navigator.of(context).pop(-1)
                     )
                   ),
                   Visibility(
-                    visible: !teeOffPass && !alreadyIn,
+                    visible: !teeOffPass && !alreadyIn && !alreadyApply,
                     child: ElevatedButton(
                       child: Text(Language.of(context).apply),
                       onPressed: () => Navigator.of(context).pop(1)
