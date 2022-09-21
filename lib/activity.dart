@@ -455,7 +455,7 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                         int _handicap = scores[3] - scores[1] + (scores[4] - scores[0])*2 + scores[5]*3;
                         if (row['total'] != '') {
                           myScores.insert(0, {
-                            'date': DateTime.now().toString().substring(0, 16),
+                            'date': DateTime.now().toString().substring(0, 11),
                             'course': activity.data()!['course'],
                             'scores': scores,
                             'total': double.parse(row['total']),
