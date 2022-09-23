@@ -43,7 +43,7 @@ class LanguageZh extends Language {
   String get createNewActivity => '建立新活動';
   String get editActivity => '修改活動';
   String get createNewCourse => '建立新球場';
-  String get courseName => '球場名稱:';
+  String get courseName => '球場:';
   String get createNewGolfGroup => '建立新群組';
   String get groupName => '群組名稱:';
   String get groupActRegion => '活動地區';

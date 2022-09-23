@@ -361,7 +361,7 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                   const SizedBox(height: 10.0),
                   Text(Language.of(context).teeOff + activity.data()!['teeOff'].toDate().toString().substring(0, 16) + ' ' + Language.of(context).fee + activity.data()!['fee'].toString(), style: TextStyle(fontSize: 20)),
                   const SizedBox(height: 10.0),
-                  Text(activity.data()!['course'] + " " + Language.of(context).max + activity.data()!['max'].toString(), style: TextStyle(fontSize: 20)),
+                  Text(Language.of(context).courseName + activity.data()!['course'] + " " + Language.of(context).max + activity.data()!['max'].toString(), style: TextStyle(fontSize: 20)),
                   const SizedBox(height: 10.0),
                   Visibility(
                     visible: !scoreReady,
