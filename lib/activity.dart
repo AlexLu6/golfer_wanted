@@ -51,7 +51,6 @@ Widget activityList() {
                 if (element['uid'] == golferID && !myActivities.contains(doc.id)) {
                   myActivities.add(doc.id);
                   storeMyActivities();
-                  print(myActivities);
                 }
               });
               return Card(
@@ -671,8 +670,7 @@ class NewActivityPage extends MaterialPageRoute<bool> {
                                         {
                                           "uid": uid,
                                           "name": userName + ((userSex == gender.Female) ? Language.of(context).femaleNote : ''), "scores": []
-                                        }
-                                      ] : []
+                                        }] : []
                               }).then((value) {
                                 if (_includeMe) {
                                   myActivities.add(value.id);
@@ -704,15 +702,11 @@ class _EditActivityPage extends MaterialPageRoute<bool> {
             blist.add(element['uid']);
           });
           if (blist.length > 0)
-            FirebaseFirestore.instance
-                .collection('Golfers')
-                .get()
-                .then((value) {
+            FirebaseFirestore.instance.collection('Golfers').get().then((value) {
               value.docs.forEach((result) {
                 var items = result.data();
                 if (blist.contains(items['uid'] as int))
-                  golfers.add(NameID(items['name'] + '(' + items['phone'] + ')',
-                      items['uid'] as int));
+                  golfers.add(NameID(items['name'] + '(' + items['phone'] + ')', items['uid'] as int));
               });
             });
 
@@ -738,66 +732,44 @@ class _EditActivityPage extends MaterialPageRoute<bool> {
                                 title: Language.of(context).pickDate,
                                 selectedDate: DateTime.now(),
                                 firstDate: DateTime.now(),
-                                lastDate:
-                                    DateTime.now().add(Duration(days: 180)),
-                                //onChanged: (value) => setState(() => _selectedDate = value),
+                                lastDate: DateTime.now().add(Duration(days: 180)),
                               ).then((date) {
                                 if (date != null)
                                   showMaterialTimePicker(
-                                          context: context,
-                                          title: Language.of(context).pickTime,
-                                          selectedTime: TimeOfDay.now())
-                                      .then((time) => setState(() =>
-                                          _selectedDate = DateTime(
-                                              date.year,
-                                              date.month,
-                                              date.day,
-                                              time!.hour,
-                                              time.minute)));
+                                    context: context,
+                                    title: Language.of(context).pickTime,
+                                    selectedTime: TimeOfDay.now()).then((time) => setState(() => 
+                                        _selectedDate = DateTime(date.year, date.month, date.day, time!.hour, time.minute)));
                               });
                             }),
                         const SizedBox(width: 5),
-                        Flexible(
-                            child: TextFormField(
-                          initialValue:
-                              _selectedDate.toString().substring(0, 16),
+                        Flexible(child: TextFormField(
+                          initialValue: _selectedDate.toString().substring(0, 16),
                           key: Key(_selectedDate.toString().substring(0, 16)),
                           showCursor: true,
-                          onChanged: (String? value) =>
-                              _selectedDate = DateTime.parse(value!),
+                          onChanged: (String? value) => _selectedDate = DateTime.parse(value!),
                           keyboardType: TextInputType.datetime,
-                          decoration: InputDecoration(
-                              labelText: Language.of(context).teeOffTime,
-                              border: OutlineInputBorder()),
+                          decoration: InputDecoration(labelText: Language.of(context).teeOffTime, border: OutlineInputBorder()),
                         )),
                         const SizedBox(width: 5)
                       ])),
                       const SizedBox(height: 12),
-                      Flexible(
-                          child: Row(children: <Widget>[
+                      Flexible(child: Row(children: <Widget>[
                         const SizedBox(width: 5),
-                        Flexible(
-                            child: TextFormField(
+                        Flexible(child: TextFormField(
                           initialValue: _max.toString(),
                           showCursor: true,
                           onChanged: (String value) => _max = int.parse(value),
                           keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                              labelText: Language.of(context).max,
-                              icon: Icon(Icons.group),
-                              border: OutlineInputBorder()),
+                          decoration: InputDecoration(labelText: Language.of(context).max, icon: Icon(Icons.group), border: OutlineInputBorder()),
                         )),
                         const SizedBox(width: 5),
-                        Flexible(
-                            child: TextFormField(
+                        Flexible(child: TextFormField(
                           initialValue: _fee.toString(),
                           showCursor: true,
                           onChanged: (String value) => _fee = int.parse(value),
                           keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                              labelText: Language.of(context).fee,
-                              icon: Icon(Icons.money),
-                              border: OutlineInputBorder()),
+                          decoration: InputDecoration(labelText: Language.of(context).fee, icon: Icon(Icons.money), border: OutlineInputBorder()),
                         )),
                         const SizedBox(width: 5)
                       ])),
@@ -808,18 +780,14 @@ class _EditActivityPage extends MaterialPageRoute<bool> {
                         onChanged: (String value) => _remarks = value,
                         maxLines: 3,
                         scrollPadding: EdgeInsets.only(bottom: 40),
-                        decoration: InputDecoration(
-                            labelText: Language.of(context).actRemarks,
-                            icon: Icon(Icons.edit_note),
-                            border: OutlineInputBorder()),
+                        decoration: InputDecoration(labelText: Language.of(context).actRemarks, icon: Icon(Icons.edit_note), border: OutlineInputBorder()),
                       ),
-                      Flexible(
-                          child: Row(children: <Widget>[
+                      Flexible(child: Row(children: <Widget>[
                         const SizedBox(width: 5),
                         Checkbox(
                             value: _approveNeeded,
-                            onChanged: (bool? value) =>
-                                setState(() => _approveNeeded = value!)),
+                            onChanged: (bool? value) => setState(() => _approveNeeded = value!)
+                        ),
                         const SizedBox(width: 5),
                         Text(Language.of(context).approveNeeded)
                       ])),
@@ -831,38 +799,32 @@ class _EditActivityPage extends MaterialPageRoute<bool> {
                                 child: Text(Language.of(context).modify,
                                     style: TextStyle(fontSize: 18)),
                                 onPressed: () async {
-                                  FirebaseFirestore.instance
-                                      .collection('GolferActivities')
-                                      .doc(actDoc.id)
-                                      .update({
-                                    "teeOff": Timestamp.fromDate(_selectedDate),
-                                    "max": _max,
-                                    "fee": _fee,
-                                    "remarks": _remarks,
-                                    "approve": _approveNeeded ? 1 : 0,
-                                  }).then((value) {
-                                    Navigator.of(context).pop(true);
-                                  });
+                                  FirebaseFirestore.instance.collection('GolferActivities').doc(actDoc.id)
+                                    .update({
+                                      "teeOff": Timestamp.fromDate(_selectedDate),
+                                      "max": _max,
+                                      "fee": _fee,
+                                      "remarks": _remarks,
+                                      "approve": _approveNeeded ? 1 : 0,
+                                    }).then((value) {
+                                      Navigator.of(context).pop(true);
+                                    });
                                 }),
                             Visibility(
                                 visible: blist.length > 0,
                                 child: ElevatedButton(
-                                    child: Text(Language.of(context).kickMember,
-                                        style: TextStyle(fontSize: 18)),
+                                    child: Text(Language.of(context).kickMember, style: TextStyle(fontSize: 18)),
                                     onPressed: () {
                                       showMaterialScrollPicker<NameID>(
                                         context: context,
-                                        title: Language.of(context)
-                                            .selectKickMember,
+                                        title: Language.of(context).selectKickMember,
                                         items: golfers,
                                         showDivider: false,
                                         selectedItem: golfers[0],
-                                        onChanged: (value) => setState(
-                                            () => _selectedGolfer = value),
+                                        onChanged: (value) => setState(() => _selectedGolfer = value),
                                       ).then((value) {
                                         if (_selectedGolfer != null)
-                                          removeGolferActivity(
-                                              actDoc, _selectedGolfer.toID());
+                                          removeGolferActivity(actDoc, _selectedGolfer.toID());
                                         Navigator.of(context).pop(true);
                                       });
                                     }))
@@ -888,11 +850,9 @@ class SubGroupPage extends MaterialPageRoute<bool> {
               newGroups.add(subMap);
             }
             subGroups = newGroups;
-            FirebaseFirestore.instance
-                .collection('GolferActivities')
-                .doc(activity.id)
-                .update({'subgroups': newGroups}).whenComplete(
-                    () => Navigator.of(context).pop(true));
+            FirebaseFirestore.instance.collection('GolferActivities').doc(activity.id)
+                .update({'subgroups': newGroups})
+                .whenComplete(() => Navigator.of(context).pop(true));
           }
 
           int alreadyIn = -1;
@@ -917,31 +877,18 @@ class SubGroupPage extends MaterialPageRoute<bool> {
                   itemBuilder: (BuildContext context, int i) {
                     bool isfull = subIntGroups[i].length == 4;
                     return ListTile(
-                      leading: CircleAvatar(
-                          child: Text(String.fromCharCodes([$A + i]))),
-                      title: subIntGroups[i].length == 0
-                          ? Text(Language.of(context).name)
-                          : FutureBuilder(
+                      leading: CircleAvatar(child: Text(String.fromCharCodes([$A + i]))),
+                      title: subIntGroups[i].length == 0 ? Text(Language.of(context).name) : FutureBuilder(
                               future: golferNames(subIntGroups[i]),
                               builder: (context, snapshot) {
                                 if (!snapshot.hasData)
                                   return const LinearProgressIndicator();
                                 else
-                                  return Text(snapshot.data!.toString(),
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold));
+                                  return Text(snapshot.data!.toString(), style: TextStyle(fontWeight: FontWeight.bold));
                               }),
-                      trailing: (alreadyIn == i)
-                          ? Icon(
-                              Icons.person_remove_rounded,
-                              color: Colors.red,
-                            )
-                          : (!isfull && alreadyIn < 0)
-                              ? Icon(
-                                  Icons.add_box_outlined,
-                                  color: Colors.blue,
-                                )
-                              : Icon(Icons.stop, color: Colors.grey),
+                      trailing: (alreadyIn == i) ? Icon(Icons.person_remove_rounded, color: Colors.red,)
+                            : (!isfull && alreadyIn < 0) ? Icon(Icons.add_box_outlined, color: Colors.blue,)
+                            : Icon(Icons.stop, color: Colors.grey),
                       onTap: () {
                         if (alreadyIn == i) {
                           subIntGroups[i].remove(uId);
