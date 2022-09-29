@@ -13,12 +13,8 @@ bool alreadyApply = false;
 Widget activityList() {
   Timestamp deadline = Timestamp.fromDate(
       DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
-  var allActivities = [];
   return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('GolferActivities')
-          .orderBy('teeOff')
-          .snapshots(),
+      stream: FirebaseFirestore.instance.collection('GolferActivities').orderBy('teeOff').snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const CircularProgressIndicator();
@@ -28,73 +24,53 @@ Widget activityList() {
             if ((doc.data()! as Map)["teeOff"] == null) {
               return const LinearProgressIndicator();
             } else if (myActivities.contains(doc.id)) {
-              allActivities.add(doc.id);
+              return const SizedBox.shrink();
+            } else if ((doc.data()! as Map)["uid"] == golferID) {
+              if (!myActivities.contains(doc.id))
+                myActivities.add(doc.id);
               return const SizedBox.shrink();
             } else if ((doc.data()! as Map)["locale"] != theLocale) {
               return const SizedBox.shrink();
             } else if ((doc.data()! as Map)["teeOff"].compareTo(deadline) < 0) {
               //delete the activity
-              FirebaseFirestore.instance
-                  .collection('GolferActivities')
-                  .doc(doc.id)
-                  .delete();
+              FirebaseFirestore.instance.collection('GolferActivities').doc(doc.id).delete();
               return const SizedBox.shrink();
             } else {
-              FirebaseFirestore.instance
-                  .collection('ApplyAct')
-                  .where('uid', isEqualTo: golferID)
-                  .where('aid', isEqualTo: doc.id)
-                  .get()
-                  .then((value) {
+              FirebaseFirestore.instance.collection('ApplyAct').where('uid', isEqualTo: golferID).where('aid', isEqualTo: doc.id)
+                  .get().then((value) {
                 value.docs.forEach((result) {
                   if (result['response'] == 'OK') {
-//                          myActivities.add(doc.id);
-//                          storeMyActivities();
-                    FirebaseFirestore.instance
-                        .collection('ApplyAct')
-                        .doc(result.id)
-                        .delete();
+                    myActivities.add(doc.id);
+                    storeMyActivities();
+                    FirebaseFirestore.instance.collection('ApplyAct').doc(result.id).delete();
                   } else
                     alreadyApply = true;
                 });
               });
               ((doc.data()! as Map)['golfers'] as List).forEach((element) {
-                if (element['uid'] == golferID) allActivities.add(doc.id);
+                if (element['uid'] == golferID && !myActivities.contains(doc.id)) {
+                  myActivities.add(doc.id);
+                  storeMyActivities();
+                  print(myActivities);
+                }
               });
               return Card(
                   child: ListTile(
                       title: Text((doc.data()! as Map)['course']),
                       subtitle: Text(Language.of(context).teeOff +
-                          ((doc.data()! as Map)['teeOff'])
-                              .toDate()
-                              .toString()
-                              .substring(0, 16) +
-                          '\n' +
-                          Language.of(context).max +
-                          (doc.data()! as Map)['max'].toString() +
-                          ' ' +
-                          Language.of(context).now +
-                          ((doc.data()! as Map)['golfers'] as List)
-                              .length
-                              .toString() +
-                          " " +
-                          Language.of(context).fee +
-                          (doc.data()! as Map)['fee'].toString()),
+                          ((doc.data()! as Map)['teeOff']).toDate().toString().substring(0, 16) + '\n' +
+                          Language.of(context).max + (doc.data()! as Map)['max'].toString() + ' ' +
+                          Language.of(context).now + ((doc.data()! as Map)['golfers'] as List).length.toString() + " " +
+                          Language.of(context).fee + (doc.data()! as Map)['fee'].toString()),
                       leading: Image.network(coursePhoto),
                       trailing: const Icon(Icons.keyboard_arrow_right),
                       onTap: () async {
                         int uid = (doc.data()! as Map)['uid'] as int;
-                        Navigator.push(
-                                context,
-                                ShowActivityPage(doc, golferID,
-                                    await golferName(uid)!, golferID == uid))
-                            .then((value) async {
+                        Navigator.push(context,ShowActivityPage(doc, golferID, await golferName(uid)!, golferID == uid)).then((value) async {
                           if (value == 1) {
                             if ((doc.data()! as Map)['approve'] == 1) {
                               // send application to owner
-                              FirebaseFirestore.instance
-                                  .collection('ApplyAct')
-                                  .add({
+                              FirebaseFirestore.instance.collection('ApplyAct').add({
                                 'uid': golferID,
                                 'aid': doc.id,
                                 'response': 'waiting'
@@ -103,16 +79,12 @@ Widget activityList() {
                                       builder: (context) {
                                         alreadyApply = true;
                                         return AlertDialog(
-                                          title:
-                                              Text(Language.of(context).hint),
-                                          content: Text(Language.of(context)
-                                              .applicationSent),
+                                          title: Text(Language.of(context).hint),
+                                          content: Text(Language.of(context).applicationSent),
                                           actions: <Widget>[
                                             TextButton(
                                                 child: Text("OK"),
-                                                onPressed: () =>
-                                                    Navigator.of(context)
-                                                        .pop(true)),
+                                                onPressed: () => Navigator.of(context).pop(true)),
                                           ],
                                         );
                                       }));
@@ -121,22 +93,19 @@ Widget activityList() {
                               var glist = doc.get('golfers');
                               glist.add({
                                 "uid": golferID,
-                                "name": userName +
-                                    ((userSex == gender.Female)
-                                        ? Language.of(context).femaleNote
-                                        : ''),
+                                "name": userName + ((userSex == gender.Female) ? Language.of(context).femaleNote : ''),
                                 "scores": []
                               });
-                              FirebaseFirestore.instance
-                                  .collection('GolferActivities')
-                                  .doc(doc.id)
-                                  .update({'golfers': glist});
+                              FirebaseFirestore.instance.collection('GolferActivities').doc(doc.id).update({'golfers': glist});
                               myActivities.add(doc.id);
                               storeMyActivities();
                             }
                           } else if (value == -1) {
-                            myActivities.remove(doc.id);
-                            storeMyActivities();
+                            if (!(doc.data()! as Map)["uid"] == golferID) {
+                              myActivities.remove(doc.id);
+                              storeMyActivities();
+                            }
+                            removeGolferActivity(doc, golferID);
                           }
                         });
                       }));
@@ -147,105 +116,62 @@ Widget activityList() {
 }
 
 Widget myActivityBody() {
-  Timestamp deadline = Timestamp.fromDate(
-      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
+  Timestamp deadline = Timestamp.fromDate(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
   var allActivities = [];
-  return myActivities.isEmpty
-      ? ListView()
+  return myActivities.isEmpty ? ListView()
       : StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('GolferActivities')
-              .orderBy('teeOff')
-              .snapshots(), //.where(FieldPath.documentId, whereIn: myActivities)
+          stream: FirebaseFirestore.instance.collection('GolferActivities').orderBy('teeOff').snapshots(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return const CircularProgressIndicator();
             } else {
-              return ListView(
-                  children: snapshot.data!.docs.map((doc) {
+              return ListView(children: snapshot.data!.docs.map((doc) {
                 if ((doc.data()! as Map)["teeOff"] == null) {
                   return const LinearProgressIndicator();
                 } else if (!myActivities.contains(doc.id)) {
                   return const SizedBox.shrink();
-                } else if ((doc.data()! as Map)["teeOff"].compareTo(deadline) <
-                    0) {
+                } else if ((doc.data()! as Map)["teeOff"].compareTo(deadline) < 0) {
                   //delete the activity
-                  FirebaseFirestore.instance
-                      .collection('GolferActivities')
-                      .doc(doc.id)
-                      .delete();
+                  FirebaseFirestore.instance.collection('GolferActivities').doc(doc.id).delete();
                   myActivities.remove(doc.id);
                   storeMyActivities();
                   return const SizedBox.shrink();
                 } else {
-                  allActivities.add(doc.id);
+                  if (!allActivities.contains(doc.id))
+                    allActivities.add(doc.id);
                   return Card(
                       child: ListTile(
                           title: Text((doc.data()! as Map)['course']),
                           subtitle: Text(Language.of(context).teeOff +
-                              ((doc.data()! as Map)['teeOff'])
-                                  .toDate()
-                                  .toString()
-                                  .substring(0, 16) +
-                              '\n' +
-                              Language.of(context).max +
-                              (doc.data()! as Map)['max'].toString() +
-                              ' ' +
-                              Language.of(context).now +
-                              ((doc.data()! as Map)['golfers'] as List)
-                                  .length
-                                  .toString() +
-                              " " +
-                              Language.of(context).fee +
-                              (doc.data()! as Map)['fee'].toString()),
+                              ((doc.data()! as Map)['teeOff']).toDate().toString().substring(0, 16) + '\n' +
+                              Language.of(context).max + (doc.data()! as Map)['max'].toString() + ' ' +
+                              Language.of(context).now + ((doc.data()! as Map)['golfers'] as List).length .toString() + " " +
+                              Language.of(context).fee + (doc.data()! as Map)['fee'].toString()),
                           leading: Image.network(coursePhoto),
                           trailing: Icon(Icons.keyboard_arrow_right),
                           onTap: () async {
-                            Navigator.push(
-                                    context,
-                                    ShowActivityPage(
-                                        doc,
-                                        golferID,
-                                        await golferName((doc.data()!
-                                            as Map)['uid'] as int)!,
-                                        (doc.data()! as Map)['uid'] as int ==
-                                            golferID))
-                                .then((value) async {
-                              var glist = doc.get('golfers');
-                              if (value == -1) {
-                                myActivities.remove(doc.id);
-                                storeMyActivities();
-                                glist.removeWhere(
-                                    (item) => item['uid'] == golferID);
-                                var subGroups = doc.get('subgroups');
-                                for (int i = 0; i < subGroups.length; i++) {
-                                  for (int j = 0;
-                                      j < (subGroups[i] as Map).length;
-                                      j++) {
-                                    if ((subGroups[i] as Map)[j.toString()] ==
-                                        golferID) {
-                                      for (;
-                                          j < (subGroups[i] as Map).length - 1;
-                                          j++)
-                                        (subGroups[i] as Map)[j.toString()] =
-                                            (subGroups[i]
-                                                as Map)[(j + 1).toString()];
-                                      (subGroups[i] as Map)
-                                          .remove(j.toString());
-                                    }
-                                  }
-                                }
-                                FirebaseFirestore.instance
-                                    .collection('GolferActivities')
-                                    .doc(doc.id)
-                                    .update({
-                                  'golfers': glist,
-                                  'subgroups': subGroups
-                                });
-                              } else if (myActivities.length !=
-                                  allActivities.length) {
+                            if (myActivities.length != allActivities.length) {
                                 myActivities = allActivities;
                                 storeMyActivities();
+                            }
+                            Navigator.push(context, ShowActivityPage(doc,golferID,
+                                        await golferName((doc.data()!as Map)['uid'] as int)!,
+                                        (doc.data()! as Map)['uid'] as int == golferID)).then((value) async {
+                              if (value == -1) {
+                                if ((doc.data()! as Map)["uid"] != golferID) {
+                                  myActivities.remove(doc.id);
+                                  storeMyActivities();
+                                }
+                                removeGolferActivity(doc, golferID);
+                              } else if (value == 1) {
+                                // add my id to golfer list
+                                var glist = doc.get('golfers');
+                                glist.add({
+                                  "uid": golferID,
+                                  "name": userName + ((userSex == gender.Female) ? Language.of(context).femaleNote : ''),
+                                  "scores": []
+                                });
+                                FirebaseFirestore.instance.collection('GolferActivities').doc(doc.id).update({'golfers': glist});
                               }
                             });
                           }));
@@ -262,10 +188,7 @@ void doAddActivity(BuildContext context) {
 class ShowActivityPage extends MaterialPageRoute<int> {
   ShowActivityPage(var activity, int uId, String title, bool editable)
       : super(builder: (BuildContext context) {
-          bool alreadyIn = false,
-              scoreReady = false,
-              scoreDone = false,
-              isBackup = false;
+          bool alreadyIn = false, scoreReady = false, scoreDone = false, isBackup = false;
           String uName = '';
           int uIdx = 0;
 
@@ -336,11 +259,8 @@ class ShowActivityPage extends MaterialPageRoute<int> {
             return scoreRows;
           }
 
-          bool teeOffPass =
-              activity.data()!['teeOff'].compareTo(Timestamp.now()) < 0;
-          bool teeOffPass2 = activity.data()!['teeOff'].compareTo(
-                  Timestamp(Timestamp.now().seconds + 2 * 60 * 60, 0)) <
-              0;
+          bool teeOffPass = activity.data()!['teeOff'].compareTo(Timestamp.now()) < 0;
+          bool teeOffPass2 = activity.data()!['teeOff'].compareTo(Timestamp(Timestamp.now().seconds - 2 * 60 * 60, 0)) < 0;
           void updateScore() {
             var glist = activity.data()!['golfers'];
             glist[uIdx]['scores'] = myScores[0]['scores'];
@@ -349,8 +269,7 @@ class ShowActivityPage extends MaterialPageRoute<int> {
             FirebaseFirestore.instance
                 .collection('GolferActivities')
                 .doc(activity.id)
-                .update({'golfers': glist}).whenComplete(
-                    () => Navigator.of(context).pop(0));
+                .update({'golfers': glist}).whenComplete(() => Navigator.of(context).pop(0));
           }
 
           // prepare parameters
@@ -424,12 +343,8 @@ class ShowActivityPage extends MaterialPageRoute<int> {
 
           bool addMember = false;
           void doAddMember() {
-            FirebaseFirestore.instance
-                .collection('ApplyAct')
-                .where('aid', isEqualTo: activity.id)
-                .where('response', isEqualTo: 'waiting')
-                .get()
-                .then((value) {
+            FirebaseFirestore.instance.collection('ApplyAct').where('aid', isEqualTo: activity.id)
+                .where('response', isEqualTo: 'waiting').get().then((value) {
               value.docs.forEach((result) async {
                 // grant or refuse the apply of e['uid']
                 var e = result.data();
@@ -437,22 +352,13 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                 String uname = await golferName(uid)!;
                 int? ans = await grantApplyDialog(uname);
                 if (ans! > 0) {
-                  FirebaseFirestore.instance
-                      .collection('ApplyAct')
-                      .doc(result.id)
-                      .update({'response': 'OK'});
+                  FirebaseFirestore.instance.collection('ApplyAct').doc(result.id).update({'response': 'OK'});
                   var glist = activity.get('golfers');
                   glist.add({"uid": uid, "name": uname, "scores": []});
-                  FirebaseFirestore.instance
-                      .collection('GolferActivities')
-                      .doc(activity.id)
-                      .update({'golfers': glist});
+                  FirebaseFirestore.instance.collection('GolferActivities').doc(activity.id).update({'golfers': glist});
                   addMember = true;
                 } else if (ans < 0)
-                  FirebaseFirestore.instance
-                      .collection('ApplyAct')
-                      .doc(result.id)
-                      .update({'response': 'No'});
+                  FirebaseFirestore.instance.collection('ApplyAct').doc(result.id).update({'response': 'No'});
               });
             });
           }
@@ -464,32 +370,16 @@ class ShowActivityPage extends MaterialPageRoute<int> {
               body: StatefulBuilder(
                   builder: (BuildContext context, StateSetter setState) {
                 return Container(
-                    decoration: BoxDecoration(
-                        image: DecorationImage(
-                            image: NetworkImage(netPhoto), fit: BoxFit.cover)),
+                    decoration: BoxDecoration(image: DecorationImage(image: NetworkImage(netPhoto), fit: BoxFit.cover)),
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
                           const SizedBox(height: 10.0),
-                          Text(
-                              Language.of(context).teeOff +
-                                  activity
-                                      .data()!['teeOff']
-                                      .toDate()
-                                      .toString()
-                                      .substring(0, 16) +
-                                  ' ' +
-                                  Language.of(context).fee +
-                                  activity.data()!['fee'].toString(),
-                              style: TextStyle(fontSize: 20)),
+                          Text(Language.of(context).teeOff + activity.data()!['teeOff'].toDate().toString().substring(0, 16) + ' ' +
+                               Language.of(context).fee + activity.data()!['fee'].toString(), style: TextStyle(fontSize: 20)),
                           const SizedBox(height: 10.0),
-                          Text(
-                              Language.of(context).courseName +
-                                  activity.data()!['course'] +
-                                  " " +
-                                  Language.of(context).max +
-                                  activity.data()!['max'].toString(),
-                              style: TextStyle(fontSize: 20)),
+                          Text(Language.of(context).courseName + activity.data()!['course'] + " " +
+                                Language.of(context).max + activity.data()!['max'].toString(), style: TextStyle(fontSize: 20)),
                           const SizedBox(height: 10.0),
                           Visibility(
                               visible: !scoreReady,
@@ -502,54 +392,21 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                                 thAlignment: TextAlign.center,
                                 columnRatio: 0.2,
                                 columns: [
-                                  {
-                                    "title": Language.of(context).tableGroup,
-                                    'index': 1,
-                                    'key': 'row',
-                                    'editable': false,
-                                    'widthFactor': 0.15
-                                  },
-                                  const {
-                                    "title": "A",
-                                    'index': 2,
-                                    'key': 'c1',
-                                    'editable': false
-                                  },
-                                  const {
-                                    "title": "B",
-                                    'index': 3,
-                                    'key': 'c2',
-                                    'editable': false
-                                  },
-                                  const {
-                                    "title": "C",
-                                    'index': 4,
-                                    'key': 'c3',
-                                    'editable': false
-                                  },
-                                  const {
-                                    "title": "D",
-                                    'index': 5,
-                                    'key': 'c4',
-                                    'editable': false
-                                  }
+                                  { "title": Language.of(context).tableGroup, 'index': 1, 'key': 'row', 'editable': false, 'widthFactor': 0.15},
+                                  const {"title": "A", 'index': 2, 'key': 'c1', 'editable': false},
+                                  const {"title": "B", 'index': 3, 'key': 'c2', 'editable': false},
+                                  const {"title": "C", 'index': 4, 'key': 'c3', 'editable': false},
+                                  const {"title": "D", 'index': 5, 'key': 'c4', 'editable': false}
                                 ],
                                 rows: buildRows(),
                               ))),
                           const SizedBox(height: 4.0),
                           Visibility(
-                              visible: ((activity.data()!['golfers'] as List)
-                                          .length >
-                                      4) &&
-                                  alreadyIn &&
-                                  !isBackup &&
-                                  !scoreReady,
+                              visible: ((activity.data()!['golfers'] as List).length > 4) && alreadyIn && !isBackup && !scoreReady,
                               child: ElevatedButton(
                                   child: Text(Language.of(context).subGroup),
                                   onPressed: () {
-                                    Navigator.push(context,
-                                            SubGroupPage(activity, uId))
-                                        .then((value) {
+                                    Navigator.push(context, SubGroupPage(activity, uId)).then((value) {
                                       if (value ?? false)
                                         Navigator.of(context).pop(0);
                                     });
@@ -557,8 +414,7 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                           const SizedBox(height: 4.0),
                           Visibility(
                               visible: scoreReady,
-                              child: Flexible(
-                                  child: Editable(
+                              child: Flexible(child: Editable(
                                 borderColor: Colors.black,
                                 tdStyle: const TextStyle(fontSize: 14),
                                 trHeight: 16,
@@ -566,75 +422,20 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                                 thAlignment: TextAlign.center,
                                 columnRatio: 0.1,
                                 columns: [
-                                  {
-                                    'title': Language.of(context).rank,
-                                    'index': 1,
-                                    'key': 'rank',
-                                    'editable': false
-                                  },
-                                  {
-                                    'title': Language.of(context).total,
-                                    'index': 2,
-                                    'key': 'total',
-                                    'editable': false,
-                                    'widthFactor': 0.13
-                                  },
-                                  {
-                                    'title': Language.of(context).name,
-                                    'index': 3,
-                                    'key': 'name',
-                                    'editable': false,
-                                    'widthFactor': 0.2
-                                  },
-                                  {
-                                    'title': Language.of(context).net,
-                                    'index': 4,
-                                    'key': 'net',
-                                    'editable': false,
-                                    'widthFactor': 0.15
-                                  },
-                                  {
-                                    'title': Emoji.byName('dove')!.char,
-                                    'index': 5,
-                                    'key': 'BD',
-                                    'editable': false
-                                  },
-                                  {
-                                    'title':
-                                        Emoji.byName('person golfing')!.char,
-                                    'index': 6,
-                                    'key': 'PAR',
-                                    'editable': false
-                                  },
-                                  {
-                                    'title':
-                                        Emoji.byName('index pointing up')!.char,
-                                    'index': 7,
-                                    'key': 'BG',
-                                    'editable': false
-                                  },
-                                  {
-                                    'title': Emoji.byName('victory hand')!.char,
-                                    'index': 8,
-                                    'key': 'DB',
-                                    'editable': false
-                                  },
-                                  {
-                                    'title': Emoji.byName('eagle')!.char,
-                                    'index': 9,
-                                    'key': 'EG',
-                                    'editable': false
-                                  },
+                                  {'title': Language.of(context).rank, 'index': 1, 'key': 'rank', 'editable': false},
+                                  {'title': Language.of(context).total, 'index': 2, 'key': 'total', 'editable': false, 'widthFactor': 0.13},
+                                  {'title': Language.of(context).name, 'index': 3, 'key': 'name', 'editable': false, 'widthFactor': 0.2},
+                                  {'title': Language.of(context).net, 'index': 4, 'key': 'net', 'editable': false, 'widthFactor': 0.15},
+                                  {'title': Emoji.byName('dove')!.char, 'index': 5, 'key': 'BD', 'editable': false},
+                                  {'title': Emoji.byName('person golfing')!.char, 'index': 6, 'key': 'PAR', 'editable': false},
+                                  {'title': Emoji.byName('index pointing up')!.char, 'index': 7, 'key': 'BG', 'editable': false},
+                                  {'title': Emoji.byName('victory hand')!.char, 'index': 8, 'key': 'DB', 'editable': false},
+                                  {'title': Emoji.byName('eagle')!.char, 'index': 9, 'key': 'EG', 'editable': false},
                                 ],
                                 rows: buildScoreRows(),
                               ))),
-                          Visibility(
-                              visible: teeOffPass2 &&
-                                  alreadyIn &&
-                                  !isBackup &&
-                                  !scoreDone,
-                              child: Flexible(
-                                  child: Editable(
+                          Visibility(visible: teeOffPass2 && alreadyIn && !isBackup && !scoreDone,
+                              child: Flexible(child: Editable(
                                 borderColor: Colors.black,
                                 tdStyle: const TextStyle(fontSize: 14),
                                 trHeight: 16,
@@ -642,58 +443,15 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                                 thAlignment: TextAlign.center,
                                 columnRatio: 0.12,
                                 columns: [
-                                  {
-                                    'title': Language.of(context).total,
-                                    'index': 1,
-                                    'key': 'total',
-                                    'widthFactor': 0.15
-                                  },
-                                  {
-                                    'title': Emoji.byName('eagle')!.char,
-                                    'index': 2,
-                                    'key': 'EG'
-                                  },
-                                  {
-                                    'title': Emoji.byName('dove')!.char,
-                                    'index': 3,
-                                    'key': 'BD'
-                                  },
-                                  {
-                                    'title':
-                                        Emoji.byName('person golfing')!.char,
-                                    'index': 4,
-                                    'key': 'PAR'
-                                  },
-                                  {
-                                    'title':
-                                        Emoji.byName('index pointing up')!.char,
-                                    'index': 5,
-                                    'key': 'BG'
-                                  },
-                                  {
-                                    'title': Emoji.byName('victory hand')!.char,
-                                    'index': 6,
-                                    'key': 'DB'
-                                  },
-                                  {
-                                    'title':
-                                        Emoji.byName('face exhaling')!.char,
-                                    'index': 7,
-                                    'key': 'MM',
-                                    'widthFactor': 0.15
-                                  },
+                                  {'title': Language.of(context).total, 'index': 1, 'key': 'total', 'widthFactor': 0.15},
+                                  {'title': Emoji.byName('eagle')!.char, 'index': 2, 'key': 'EG'},
+                                  {'title': Emoji.byName('dove')!.char, 'index': 3, 'key': 'BD'},
+                                  {'title': Emoji.byName('person golfing')!.char, 'index': 4, 'key': 'PAR'},
+                                  {'title': Emoji.byName('index pointing up')!.char, 'index': 5, 'key': 'BG'},
+                                  {'title': Emoji.byName('victory hand')!.char, 'index': 6, 'key': 'DB'},
+                                  {'title': Emoji.byName('face exhaling')!.char, 'index': 7, 'key': 'MM', 'widthFactor': 0.15},
                                 ],
-                                rows: const [
-                                  {
-                                    'total': '',
-                                    'BD': '',
-                                    'PAR': '',
-                                    'BG': '',
-                                    'DB': '',
-                                    'EG': '',
-                                    'MM': ''
-                                  }
-                                ],
+                                rows: const [{'total': '', 'BD': '', 'PAR': '', 'BG': '', 'DB': '', 'EG': '', 'MM': ''}],
                                 showSaveIcon: true,
                                 saveIcon: Icons.save,
                                 saveIconColor: Colors.blue,
@@ -701,22 +459,15 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                                   List<int> scores = [
                                     row['EG'] == '' ? 0 : int.parse(row['EG']),
                                     row['BD'] == '' ? 0 : int.parse(row['BD']),
-                                    row['PAR'] == ''
-                                        ? 0
-                                        : int.parse(row['PAR']),
+                                    row['PAR'] == '' ? 0 : int.parse(row['PAR']),
                                     row['BG'] == '' ? 0 : int.parse(row['BG']),
                                     row['DB'] == '' ? 0 : int.parse(row['DB']),
                                     row['MM'] == '' ? 0 : int.parse(row['MM'])
                                   ];
-                                  int _handicap = scores[3] -
-                                      scores[1] +
-                                      (scores[4] - scores[0]) * 2 +
-                                      scores[5] * 3;
+                                  int _handicap = scores[3] - scores[1] + (scores[4] - scores[0]) * 2 + scores[5] * 3;
                                   if (row['total'] != '') {
                                     myScores.insert(0, {
-                                      'date': DateTime.now()
-                                          .toString()
-                                          .substring(0, 11),
+                                      'date': DateTime.now().toString().substring(0, 11),
                                       'course': activity.data()!['course'],
                                       'scores': scores,
                                       'total': int.parse(row['total']),
@@ -738,35 +489,23 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                                 onTap: () async {
                                   var msg = await chatInputDialog(context);
                                   if (msg != null) {
-                                    _remarks = activity.data()['remarks'] +
-                                        '\n' +
-                                        userName +
-                                        ': ' +
-                                        msg;
-                                    FirebaseFirestore.instance
-                                        .collection('GolferActivities')
-                                        .doc(activity.id)
-                                        .update({'remarks': _remarks}).then(
-                                            (value) => setState(() {}));
+                                    _remarks = activity.data()['remarks'] + '\n' + userName + ': ' + msg;
+                                    FirebaseFirestore.instance.collection('GolferActivities').doc(activity.id).update({'remarks': _remarks})
+                                    .then((value) => setState(() {}));
                                     // refresh this TextFormField
                                   }
                                 },
                                 maxLines: 5,
                                 readOnly: true,
-                                decoration: InputDecoration(
-                                    labelText: Language.of(context).actRemarks,
-                                    border: OutlineInputBorder()),
-                              )),
+                                decoration: InputDecoration(labelText: Language.of(context).actRemarks,border: OutlineInputBorder()),)),
                           Visibility(
-                              visible:
-                                  !teeOffPass && alreadyIn && !alreadyApply,
+                              visible: !teeOffPass && alreadyIn && !alreadyApply,
                               child: ElevatedButton(
                                   child: Text(Language.of(context).cancel),
                                   onPressed: () =>
                                       Navigator.of(context).pop(-1))),
                           Visibility(
-                              visible:
-                                  !teeOffPass && !alreadyIn && !alreadyApply,
+                              visible: !teeOffPass && !alreadyIn && !alreadyApply,
                               child: ElevatedButton(
                                   child: Text(Language.of(context).apply),
                                   onPressed: () =>
@@ -780,11 +519,7 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                     onPressed: () {
                       doAddMember();
                       // modify activity info
-                      Navigator.push(
-                              context,
-                              _EditActivityPage(
-                                  activity, activity.data()!['course']))
-                          .then((value) {
+                      Navigator.push(context, _EditActivityPage(activity, activity.data()!['course'])).then((value) {
                         if (value ?? false)
                           Navigator.of(context).pop(0);
                         else if (addMember) Navigator.of(context).pop(0);
@@ -848,45 +583,28 @@ class NewActivityPage extends MaterialPageRoute<bool> {
                                 //onChanged: (value) => setState(() => _selectedDate = value),
                               ).then((date) {
                                 if (date != null)
-                                  showMaterialTimePicker(
-                                          context: context,
-                                          title: Language.of(context).pickTime,
-                                          selectedTime: TimeOfDay.now())
-                                      .then((time) => setState(() =>
-                                          _selectedDate = DateTime(
-                                              date.year,
-                                              date.month,
-                                              date.day,
-                                              time!.hour,
-                                              time.minute)));
+                                  showMaterialTimePicker(context: context,  title: Language.of(context).pickTime, selectedTime: TimeOfDay.now())
+                                    .then((time) => setState(() => _selectedDate = DateTime(date.year, date.month, date.day, time!.hour, time.minute)));
                               });
                             }),
                         const SizedBox(width: 5),
-                        Flexible(
-                            child: TextFormField(
-                          initialValue:
-                              _selectedDate.toString().substring(0, 16),
+                        Flexible(child: TextFormField(
+                          initialValue: _selectedDate.toString().substring(0, 16),
                           key: Key(_selectedDate.toString().substring(0, 16)),
                           showCursor: true,
-                          onChanged: (String? value) =>
-                              _selectedDate = DateTime.parse(value!),
+                          onChanged: (String? value) => _selectedDate = DateTime.parse(value!),
                           keyboardType: TextInputType.datetime,
-                          decoration: InputDecoration(
-                              labelText: Language.of(context).teeOffTime,
-                              border: OutlineInputBorder()),
+                          decoration: InputDecoration(labelText: Language.of(context).teeOffTime, border: OutlineInputBorder()),
                         )),
                         const SizedBox(width: 5)
                       ])),
                       const SizedBox(height: 12),
-                      Flexible(
-                          child: Row(children: <Widget>[
+                      Flexible(child: Row(children: <Widget>[
                         const SizedBox(width: 5),
-                        Flexible(
-                            child: TextFormField(
+                        Flexible(child: TextFormField(
                           initialValue: _max.toString(),
                           showCursor: true,
-                          onChanged: (String value) =>
-                              setState(() => _max = int.parse(value)),
+                          onChanged: (String value) => setState(() => _max = int.parse(value)),
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                               labelText: Language.of(context).max,
@@ -894,12 +612,10 @@ class NewActivityPage extends MaterialPageRoute<bool> {
                               border: OutlineInputBorder()),
                         )),
                         const SizedBox(width: 5),
-                        Flexible(
-                            child: TextFormField(
+                        Flexible(child: TextFormField(
                           initialValue: _fee.toString(),
                           showCursor: true,
-                          onChanged: (String value) =>
-                              setState(() => _fee = int.parse(value)),
+                          onChanged: (String value) => setState(() => _fee = int.parse(value)),
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                               labelText: Language.of(context).fee,
@@ -912,8 +628,7 @@ class NewActivityPage extends MaterialPageRoute<bool> {
                       TextFormField(
                         showCursor: true,
                         initialValue: _remarks,
-                        onChanged: (String value) =>
-                            setState(() => _remarks = value),
+                        onChanged: (String value) => setState(() => _remarks = value),
                         maxLines: 3,
                         scrollPadding: EdgeInsets.only(bottom: 40),
                         decoration: InputDecoration(
@@ -922,27 +637,24 @@ class NewActivityPage extends MaterialPageRoute<bool> {
                             border: OutlineInputBorder()),
                       ),
                       const SizedBox(height: 12),
-                      Flexible(
-                          child: Row(children: <Widget>[
+                      Flexible(child: Row(children: <Widget>[
                         const SizedBox(width: 5),
                         Checkbox(
                             value: _includeMe,
-                            onChanged: (bool? value) =>
-                                setState(() => _includeMe = value!)),
+                            onChanged: (bool? value) => setState(() => _includeMe = value!)),
                         const SizedBox(width: 5),
                         Text(Language.of(context).includeMyself),
                         const SizedBox(width: 8),
                         Checkbox(
                             value: _approveNeeded,
-                            onChanged: (bool? value) =>
-                                setState(() => _approveNeeded = value!)),
+                            onChanged: (bool? value) => setState(() => _approveNeeded = value!)),
                         const SizedBox(width: 5),
                         Text(Language.of(context).approveNeeded)
                       ])),
                       const SizedBox(height: 12.0),
                       ElevatedButton(
                           child: Text(Language.of(context).create,
-                              style: const TextStyle(fontSize: 20)),
+                          style: const TextStyle(fontSize: 20)),
                           onPressed: () async {
                             if (_courseName != '') {
                               activity.add({
@@ -955,19 +667,12 @@ class NewActivityPage extends MaterialPageRoute<bool> {
                                 "remarks": _remarks,
                                 'subgroups': [],
                                 'approve': _approveNeeded ? 1 : 0,
-                                "golfers": _includeMe
-                                    ? [
+                                "golfers": _includeMe ? [
                                         {
                                           "uid": uid,
-                                          "name": userName +
-                                              ((userSex == gender.Female)
-                                                  ? Language.of(context)
-                                                      .femaleNote
-                                                  : ''),
-                                          "scores": []
+                                          "name": userName + ((userSex == gender.Female) ? Language.of(context).femaleNote : ''), "scores": []
                                         }
-                                      ]
-                                    : []
+                                      ] : []
                               }).then((value) {
                                 if (_includeMe) {
                                   myActivities.add(value.id);
