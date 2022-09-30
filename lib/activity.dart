@@ -7,6 +7,7 @@ import 'package:emojis/emoji.dart';
 import 'package:charcode/charcode.dart';
 import 'dataModel.dart';
 import 'locale/language.dart';
+import 'editable2.dart';
 
 String netPhoto = 'https://wallpaper.dog/large/5514437.jpg';
 bool alreadyApply = false;
@@ -433,7 +434,7 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                                 rows: buildScoreRows(),
                               ))),
                           Visibility(visible: teeOffPass2 && alreadyIn && !isBackup && !scoreDone,
-                              child: Flexible(child: Editable(
+                              child: Flexible(child: Editable2(
                                 borderColor: Colors.black,
                                 tdStyle: const TextStyle(fontSize: 14),
                                 trHeight: 16,
