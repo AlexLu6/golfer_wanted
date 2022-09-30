@@ -251,17 +251,13 @@ class _MyHomePageState extends State<MyHomePage> {
               title: Text(Language.of(context).male),
               value: gender.Male,
               groupValue: userSex,
-              onChanged: (gender? value) => setState(() {
-                    userSex = value!;
-                  }))),
+              onChanged: (gender? value) => setState(() => userSex = value!))),
       Flexible(
           child: RadioListTile<gender>(
               title: Text(Language.of(context).female),
               value: gender.Female,
               groupValue: userSex,
-              onChanged: (gender? value) => setState(() {
-                    userSex = value!;
-                  }))),
+              onChanged: (gender? value) => setState(() => userSex = value!))),
     ], mainAxisAlignment: MainAxisAlignment.center);
     final loginButton = Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.0),
