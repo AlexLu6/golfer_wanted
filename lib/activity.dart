@@ -382,8 +382,7 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                           const SizedBox(height: 10.0),
                           Visibility(
                               visible: !scoreReady,
-                              child: Flexible(
-                                  child: Editable(
+                              child: Flexible(child: Editable(
                                 borderColor: Colors.black,
                                 tdStyle: const TextStyle(fontSize: 14),
                                 trHeight: 16,
@@ -448,7 +447,7 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                                   {'title': Emoji.byName('person golfing')!.char, 'index': 4, 'key': 'PAR'},
                                   {'title': Emoji.byName('index pointing up')!.char, 'index': 5, 'key': 'BG'},
                                   {'title': Emoji.byName('victory hand')!.char, 'index': 6, 'key': 'DB'},
-                                  {'title': Emoji.byName('face exhaling')!.char, 'index': 7, 'key': 'MM', 'widthFactor': 0.15},
+                                  {'title': Emoji.byName('face exhaling')!.char, 'index': 7, 'key': 'MM'},
                                 ],
                                 rows: const [{'total': '', 'BD': '', 'PAR': '', 'BG': '', 'DB': '', 'EG': '', 'MM': ''}],
                                 showSaveIcon: true,

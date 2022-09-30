@@ -223,7 +223,7 @@ class _MyHomePageState extends State<MyHomePage> {
   ListView registerBody() {
     final logo = Hero(
       tag: 'golfer',
-      child: CircleAvatar(backgroundImage: NetworkImage(userSex == gender.Male ? maleGolfer : femaleGolfer), radius: 120),
+      child: CircleAvatar(backgroundImage: NetworkImage(userSex == gender.Male ? maleGolfer : femaleGolfer), radius: 130),
     );
 
     Locale myLocale = Localizations.localeOf(context);
@@ -231,7 +231,7 @@ class _MyHomePageState extends State<MyHomePage> {
       initialValue: userName,
 //      key: Key(userName),
       showCursor: true,
-      onChanged: (String value) => setState(() => userName = value),
+      onChanged: (String value) => setState(() => userName = value.trim()),
       keyboardType: TextInputType.name,
       style: const TextStyle(fontSize: 24),
       decoration: InputDecoration(labelText: Language.of(context).name, hintText: Language.of(context).realName, icon: Icon(Icons.person), border: UnderlineInputBorder()),
@@ -240,7 +240,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final golferPhone = TextFormField(
       initialValue: userPhone,
 //      key: Key(_phone),
-      onChanged: (String value) => setState(() => userPhone = value),
+      onChanged: (String value) => setState(() => userPhone = value.trim()),
       keyboardType: TextInputType.phone,
       style: const TextStyle(fontSize: 24),
       decoration: InputDecoration(labelText: Language.of(context).mobile, icon: Icon(Icons.phone), border: UnderlineInputBorder()),
