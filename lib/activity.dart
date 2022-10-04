@@ -12,8 +12,7 @@ import 'editable2.dart';
 String netPhoto = 'https://wallpaper.dog/large/5514437.jpg';
 bool alreadyApply = false;
 Widget activityList() {
-  Timestamp deadline = Timestamp.fromDate(
-      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
+  Timestamp deadline = Timestamp.fromDate(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
   return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('GolferActivities').orderBy('teeOff').snapshots(),
       builder: (context, snapshot) {
@@ -117,9 +116,8 @@ Widget activityList() {
 
 Widget myActivityBody() {
   Timestamp deadline = Timestamp.fromDate(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
-  var allActivities = [];
-  return myActivities.isEmpty ? ListView()
-      : StreamBuilder<QuerySnapshot>(
+  return myActivities.isEmpty ? ListView() :
+        StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance.collection('GolferActivities').orderBy('teeOff').snapshots(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
@@ -137,8 +135,6 @@ Widget myActivityBody() {
                   storeMyActivities();
                   return const SizedBox.shrink();
                 } else {
-                  if (!allActivities.contains(doc.id))
-                    allActivities.add(doc.id);
                   return Card(
                       child: ListTile(
                           title: Text((doc.data()! as Map)['course']),
@@ -150,10 +146,6 @@ Widget myActivityBody() {
                           leading: Image.network(coursePhoto),
                           trailing: Icon(Icons.keyboard_arrow_right),
                           onTap: () async {
-                            if (myActivities.length != allActivities.length) {
-                                myActivities = allActivities;
-                                storeMyActivities();
-                            }
                             Navigator.push(context, ShowActivityPage(doc,golferID,
                                         await golferName((doc.data()!as Map)['uid'] as int)!,
                                         (doc.data()! as Map)['uid'] as int == golferID)).then((value) async {
