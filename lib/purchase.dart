@@ -52,13 +52,13 @@ Future<void> initPlatformState() async {
           DateTime expireDate = DateTime.now().add(Duration(days: idx == 0 ? 30 : idx == 1 ? 91 : 365));
           Timestamp expire = Timestamp.fromDate(expireDate);
           if (isExpired) {
+            validateReceipt(productItem);
             FirebaseFirestore.instance.collection('Golfers').doc(golferDoc).update({
                 "expired": expire
             });
             isExpired = false;
             expiredDate = expireDate.toString();
-            prefs!.setString('expired', expiredDate);  
-            validateReceipt(productItem);              
+            prefs!.setString('expired', expiredDate);     
             FlutterInappPurchase.instance.finishTransaction(productItem, isConsumable: true);
           }
   });
@@ -83,14 +83,14 @@ void validateReceipt(PurchasedItem purchased) async {
   };
   bool isTest = true;
   var result;
-  String accessToken ='';
+  String accessToken ='MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA8XqtSItuF5oOW5cJcbEcdwqEOlF3RAE5g0W3CkTRKT4doGwAeg0Cpk9zWGuFfF837LmJ1aVf02oYO1CuTKRPvUzVxKTXgDNbl/V3Pi85jfo4PMtEU/B/KBtfHae9RMHSroaGZiieXEPjeldd2S8nIBQeuWa+Ml8J4f6spzgunQd94H39cxU3AUJUBnc6OE0+orRLerwzBzW2ngTmztD/uo/Gr3BBKvqcmMy/ueVdBUj40vtKG5sA8iXwbv15ax9B07JXjSjjtm60Z5ASMGhh1AsyrvsI7oXV/UbqwEib/2D7Df5dJKFO6walxZnA/H0mYeZPmpi6VakJnVuZhxWuqwIDAQAB';
   if (defaultTargetPlatform == TargetPlatform.android)
-/*    result = await FlutterInappPurchase.instance.validateReceiptAndroid(
+    result = await FlutterInappPurchase.instance.validateReceiptAndroid(
       packageName: 'com.niahome.golferclub', 
       productId: purchased.productId!, 
       productToken: purchased.purchaseToken!, 
-      accessToken: accessToken);*/
-      result = await FlutterInappPurchase.instance.consumePurchaseAndroid(purchased.purchaseToken!);
+      accessToken: accessToken).then((value) => 
+        result = FlutterInappPurchase.instance.consumePurchaseAndroid(purchased.purchaseToken!));
   else 
     result = await FlutterInappPurchase.instance.validateReceiptIos(receiptBody: receiptBody, isTest: isTest);
   print(result);
