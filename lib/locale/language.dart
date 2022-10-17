@@ -78,4 +78,6 @@ abstract class Language {
   String get includeMyself;
   String get approveNeeded;
   String get host;
+  String get leaveMessage;
+  String get yourMessage;
 }

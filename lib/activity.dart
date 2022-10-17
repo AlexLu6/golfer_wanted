@@ -290,11 +290,10 @@ class ShowActivityPage extends MaterialPageRoute<int> {
                 context: context,
                 builder: (context) {
                   return AlertDialog(
-                    title: const Text('Leave a Message'),
+                    title: Text(Language.of(context).leaveMessage),
                     content: TextField(
                       controller: _textFieldController,
-                      decoration:
-                          const InputDecoration(hintText: "Your Message"),
+                      decoration: InputDecoration(hintText: Language.of(context).yourMessage),
                     ),
                     actions: <Widget>[
                       ElevatedButton(

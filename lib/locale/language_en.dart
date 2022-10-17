@@ -74,4 +74,6 @@ class LanguageEn extends Language {
   String get includeMyself => 'Include myself';
   String get approveNeeded => 'Under My Approval';
   String get host => 'Host: ';
+  String get leaveMessage => 'Leave a Message';
+  String get yourMessage => 'Your Message';
 }

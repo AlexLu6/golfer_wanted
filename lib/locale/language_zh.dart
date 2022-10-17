@@ -74,4 +74,6 @@ class LanguageZh extends Language {
   String get includeMyself => '加入自己';
   String get approveNeeded => '加入需要我同意';
   String get host => '主辦人: ';
+  String get leaveMessage => '留言';
+  String get yourMessage => '你的留言';
 }
